@@ -4,8 +4,11 @@ import com.example.jewellery_backend.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    // JpaRepository already gives you:
-    // findAll(), save(), findById(), deleteById()
+
+    // Custom query method: find products by name containing a keyword (case-insensitive)
+    List<Product> findByNameContainingIgnoreCase(String keyword);
 }
