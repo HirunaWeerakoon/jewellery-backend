@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class JewelleryBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(JewelleryBackendApplication.class, args);
+        SpringApplication.run(JewelleryBackendApplication.class, args);
 	}
 
 }

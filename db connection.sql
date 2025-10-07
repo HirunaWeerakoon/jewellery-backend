@@ -8,19 +8,39 @@ CREATE TABLE users (
     address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- PRODUCTS TABLE
 CREATE TABLE products (
-    product_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    description TEXT,
-    category VARCHAR(100),
-    base_price DECIMAL(10,2) NOT NULL,
-    approx_weight DECIMAL(10,2),
-    material VARCHAR(100),
-    stone VARCHAR(100),
-    product_type ENUM('ring','necklace','bracelet','earring','other') DEFAULT 'other',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+ product_id VARCHAR(50) PRIMARY KEY,
+ name VARCHAR(150) NOT NULL,
+ description TEXT,
+ base_price DECIMAL(10,2) NOT NULL,
+ approx_weight DECIMAL(10,2),
+ stone VARCHAR(100),
+ product_type ENUM('ring','necklace','bracelet','earring','other') DEFAULT 'other',
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ category_id VARCHAR(100),
+ material_id VARCHAR(100),
+ FOREIGN KEY (category_id) REFERENCES category(category_id),
+ FOREIGN KEY (material_id) REFERENCES material(material_id)
+);
+
+-- MATERIAL TABLE
+CREATE TABLE material (
+    --rose_gold_id =RG1000, gold_id = G2000, silver_id=S3000
+    material_id  VARCHAR (100)  ,
+    product_id VARCHAR(50),
+    name  VARCHAR (100) NOT NULL  ,
+    PRIMARY KEY (material_id,product_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+-- CREATE CATEGORY TABLE
+CREATE TABLE category(
+   --necklaces_id = N1000 , rings_id = R2000, earrings_id =E3000
+   category_id VARCHAR (100) PRIMARY KEY ,
+   category_name VARCHAR (100) NOT NULL,
+   product_id VARCHAR(50),
+    PRIMARY KEY (category_id,product_id),
+   FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
 -- PRODUCT VARIANTS (for different materials, sizes, stones)
