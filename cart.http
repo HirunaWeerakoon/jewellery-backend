@@ -1,0 +1,25 @@
+### 1) Get cart
+GET http://localhost:8080/api/cart
+
+### 2) Add item
+POST http://localhost:8080/api/cart/items
+Content-Type: application/json
+
+{
+  "productId": 101,
+  "name": "Ruby Ring",
+  "unitPrice": 5000,
+  "quantity": 2
+}
+
+### 3) Update quantity
+PUT http://localhost:8080/api/cart/items/101
+Content-Type: application/json
+
+{ "quantity": 3 }
+
+### 4) Remove item
+DELETE http://localhost:8080/api/cart/items/101
+
+### 5) Checkout
+POST http://localhost:8080/api/cart/checkout
