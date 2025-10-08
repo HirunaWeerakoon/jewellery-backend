@@ -100,26 +100,6 @@ CREATE TABLE admin_users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. User Addresses Table
-CREATE TABLE user_addresses (
-    address_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    address_type ENUM('billing', 'shipping', 'both') DEFAULT 'both',
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    company VARCHAR(100),
-    address_line1 VARCHAR(200) NOT NULL,
-    address_line2 VARCHAR(200),
-    city VARCHAR(100) NOT NULL,
-    state VARCHAR(100) NOT NULL,
-    postal_code VARCHAR(20) NOT NULL,
-    country VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
 -- ========================================
 -- SHOPPING & ORDER TABLES
 -- ========================================
