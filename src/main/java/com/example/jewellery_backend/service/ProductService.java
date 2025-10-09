@@ -27,7 +27,7 @@ public class ProductService {
 
     // Get a product by ID
     public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(String.valueOf(id));
+        return productRepository.findById(id);
     }
 
     // Save a new product
@@ -37,7 +37,7 @@ public class ProductService {
 
     // Update an existing product
     public Product updateProduct(Long id, Product updatedProduct) {
-        return productRepository.findById(String.valueOf(id)).map(product -> {
+        return productRepository.findById(id).map(product -> {
             product.setName(updatedProduct.getName());
             product.setPrice(updatedProduct.getPrice());
             product.setDescription(updatedProduct.getDescription());
@@ -48,12 +48,12 @@ public class ProductService {
 
     // Delete a product
     public void deleteProduct(Long id) {
-        productRepository.deleteById(String.valueOf(id));
+        productRepository.deleteById(id);
     }
 
     // Calculate updated price based on gold rate
     public BigDecimal calculateUpdatedPrice(Long productId) {
-        Product product = productRepository.findById(String.valueOf(productId))
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID " + productId));
 
         GoldRate goldRate = goldRateRepository.findTopByOrderByDateDesc()
