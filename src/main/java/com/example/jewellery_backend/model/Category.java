@@ -1,6 +1,8 @@
 package com.example.jewellery_backend.model;
 
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,7 +16,7 @@ public class Category {
 
     // ✅ This is the correct place for OneToMany
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Product> products;
+    private List<Product> products= new ArrayList<>();
 
     // --- Constructors ---
     public Category() {}
