@@ -3,8 +3,6 @@ package com.example.jewellery_backend.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "products")
 public class Product {
 
     @Id
@@ -12,10 +10,7 @@ public class Product {
     private Long id;
 
     private String name;
-    private String description;
-    private BigDecimal price;
-    private String imageUrl;
-    private int stock;
+    private double price;
 
     // Constructors
     public Product() {}
