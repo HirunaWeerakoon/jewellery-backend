@@ -86,7 +86,7 @@ CREATE TABLE product_images (
 -- USER MANAGEMENT TABLES
 -- ========================================
 
--- 8. Admin Users Table
+-- 7. Admin Users Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) UNIQUE NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE admin_users (
 -- SHOPPING & ORDER TABLES
 -- ========================================
 
--- 10. Shopping Cart Table
+-- 8. Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -277,6 +277,31 @@ INSERT INTO product_materials (product_id, material_id, quantity) VALUES
 INSERT INTO product_materials (product_id, material_id, quantity) VALUES
 (3, 2, 2.0), -- 2 grams of 18K Gold
 (3, 4, 0.5); -- 0.5 carat total Diamond
+
+-- ========================================
+-- ANU'S EDITS
+-- ========================================
+
+-- TABLE FOR SLP UPLOADING
+CREATE TABLE slips (
+    slip_id VARCHAR(10) PRIMARY KEY,
+    order_id VARCHAR(10) NOT NULL,
+    uploaded_by_user_id VARCHAR(20) UNSIGNED,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(512) NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    file_size INT NOT NULL,
+    checksum VARCHAR(128),
+    notes VARCHAR(512),
+    slip_status ENUM('pending', 'slip_uploaded', 'verified') DEFAULT 'pending',
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    verified_at TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT fk_order_slips_order
+        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_uploaded_by_user_id
+        FOREIGN KEY (uploaded_by_user_id) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ========================================
 -- USEFUL QUERIES
