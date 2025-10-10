@@ -86,7 +86,6 @@ CREATE TABLE product_images (
 -- USER MANAGEMENT TABLES
 -- ========================================
 
--- 7. Admin Users Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) UNIQUE NOT NULL,
@@ -104,7 +103,6 @@ CREATE TABLE admin_users (
 -- SHOPPING & ORDER TABLES
 -- ========================================
 
--- 8. Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
