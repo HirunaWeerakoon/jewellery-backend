@@ -85,6 +85,8 @@ CREATE TABLE product_images (
 -- ========================================
 -- USER MANAGEMENT TABLES
 -- ========================================
+
+-- 7. Users Table
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -99,7 +101,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
+-- 8. Admin Users Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) UNIQUE NOT NULL,
@@ -112,7 +114,7 @@ CREATE TABLE admin_users (
     last_login TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+-- 9. User Addresses Table
 CREATE TABLE user_addresses (
     address_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -135,7 +137,7 @@ CREATE TABLE user_addresses (
 -- ========================================
 -- SHOPPING & ORDER TABLES
 -- ========================================
-
+-- 10. Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -337,7 +339,7 @@ CREATE TABLE slips (
 -- ========================================
 -- USEFUL QUERIES
 -- ========================================
-
+-- WHERE p.product_id = 1;
 -- Query to get current product prices
 -- SELECT 
 --     p.product_name,
