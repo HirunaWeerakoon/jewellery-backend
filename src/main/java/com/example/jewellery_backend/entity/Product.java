@@ -35,4 +35,5 @@ public class Product {
     private String imageUrl;
 
     private int stock;
+    // getters and setters
 }
