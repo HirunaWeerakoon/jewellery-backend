@@ -5,7 +5,7 @@ import com.example.jewellery_backend.dto.OrderRequestDto;
 import com.example.jewellery_backend.entity.Order;
 import com.example.jewellery_backend.entity.OrderItem;
 import com.example.jewellery_backend.entity.OrderStatus;
-import com.example.jewellery_backend.entity.Product;
+import com.example.jewellery_backend.model.Product;
 import com.example.jewellery_backend.entity.Slip;
 import com.example.jewellery_backend.exception.InsufficientStockException;
 import com.example.jewellery_backend.exception.ResourceNotFoundException;
