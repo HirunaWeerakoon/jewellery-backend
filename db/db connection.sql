@@ -200,6 +200,7 @@ CREATE TABLE slips (
 -- ADDITIONAL TABLES
 -- ========================================
 
+-- 14. Reviews Table
 CREATE TABLE reviews (
     review_id INT PRIMARY KEY AUTO_INCREMENT,
     product_id INT NOT NULL,
