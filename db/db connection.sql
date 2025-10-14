@@ -113,7 +113,7 @@ CREATE TABLE shopping_cart (
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_user_product (user_id, product_id)
+    UNIQUE KEY unique_product (product_id)
 );
 
 -- 11. Orders Table
