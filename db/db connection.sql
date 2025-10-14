@@ -191,7 +191,6 @@ CREATE INDEX idx_orders_date ON orders(created_at);
 
 -- Shopping and user experience
 CREATE INDEX idx_cart_user ON shopping_cart(user_id);
-CREATE INDEX idx_wishlist_user ON wishlist(user_id);
 
 -- ========================================
 -- DYNAMIC PRICING FUNCTION
