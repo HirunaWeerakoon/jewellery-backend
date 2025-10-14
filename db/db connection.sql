@@ -134,7 +134,6 @@ CREATE TABLE orders (
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (billing_address_id) REFERENCES user_addresses(address_id),
     FOREIGN KEY (shipping_address_id) REFERENCES user_addresses(address_id)
 );
