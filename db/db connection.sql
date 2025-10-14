@@ -137,7 +137,7 @@ CREATE TABLE shopping_cart (
     UNIQUE KEY unique_product (product_id)
 );
 
--- 11. Orders Table
+-- 10. Orders Table
 CREATE TABLE orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
     order_number VARCHAR(50) UNIQUE NOT NULL,
