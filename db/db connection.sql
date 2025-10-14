@@ -194,6 +194,29 @@ CREATE TABLE slips (
         FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+
+-- ========================================
+-- ADDITIONAL TABLES
+-- ========================================
+
+CREATE TABLE reviews (
+    review_id INT PRIMARY KEY AUTO_INCREMENT,
+    product_id INT NOT NULL,
+    reviewer_name VARCHAR(100) NOT NULL,
+    reviewer_email VARCHAR(100),
+    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment_text TEXT,
+    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_approved BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+
+
 -- ========================================
 -- INDEXES FOR PERFORMANCE
 -- ========================================
