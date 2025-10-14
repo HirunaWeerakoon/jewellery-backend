@@ -4,22 +4,23 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.example.jewellery_backend.model.Category;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long product_id;
     private String name;
     private BigDecimal price;
     private String description;
-    private String imageUrl;
+    private String image_url;
     private Integer stock;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="category_id")
-    @JsonIgnore
+    @JsonBackReference
     private Category category;
 
     public Category getCategory() {
@@ -37,17 +38,17 @@ public class Product {
         this.name = name;
         this.price = price;
         this.description = description;
-        this.imageUrl = imageUrl;
+        this.image_url = imageUrl;
         this.stock = stock;
     }
 
     // --- Getters & Setters ---
     public Long getId() {
-        return id;
+        return product_id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.product_id = id;
     }
 
     public String getName() {
@@ -74,11 +75,11 @@ public class Product {
     }
 
     public String getImageUrl() {
-        return imageUrl;
+        return image_url;
     }
 
     public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+        this.image_url = imageUrl;
     }
     public Integer getStock() {
         return stock;
