@@ -159,16 +159,7 @@ CREATE TABLE order_items (
 -- ADDITIONAL TABLES
 -- ========================================
 
--- 13. Wishlist Table
-CREATE TABLE wishlist (
-    wishlist_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    product_id INT NOT NULL,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_user_product_wishlist (user_id, product_id)
-);
+
 
 -- ========================================
 -- INDEXES FOR PERFORMANCE
