@@ -167,9 +167,7 @@ CREATE TABLE slips (
     verified BOOLEAN NOT NULL DEFAULT FALSE,
     verified_at TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_order_slips_order
-        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_uploaded_by_user_id
-        FOREIGN KEY (uploaded_by_user_id) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE
+        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ========================================
