@@ -174,14 +174,7 @@ CREATE TABLE order_status_type (
     status_name VARCHAR(50) NOT NULL UNIQUE -- e.g., Pending Payment, Processing, Shipped, Delivered
 );
 
-
-
--- ========================================
--- ADDITIONAL TABLES
--- ========================================
-
-
--- TABLE FOR SLP UPLOADING
+-- 13. TABLE FOR SLP UPLOADING
 CREATE TABLE slips (
     slip_id VARCHAR(10) PRIMARY KEY,
     order_id VARCHAR(10) NOT NULL,
