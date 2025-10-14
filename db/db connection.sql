@@ -83,7 +83,7 @@ CREATE TABLE product_images (
 );
 
 
--- FOR SEARCH BAR IMPLEMENTATION
+-- 7. Product Attributes Table (FOR SEARCH BAR IMPLEMENTATION)
 CREATE TABLE product_attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
     product_id INT NOT NULL,
