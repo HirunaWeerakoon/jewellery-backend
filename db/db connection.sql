@@ -168,7 +168,7 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
--- Order Status Type Table
+-- 12. Order Status Type Table
 CREATE TABLE order_status_type (
     status_id INT PRIMARY KEY AUTO_INCREMENT,
     status_name VARCHAR(50) NOT NULL UNIQUE -- e.g., Pending Payment, Processing, Shipped, Delivered
