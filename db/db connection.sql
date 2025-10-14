@@ -93,10 +93,17 @@ CREATE TABLE product_images (
 -- 7. Product Attributes Table
 CREATE TABLE product_attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
-    attribute_name VARCHAR(100) NOT NULL, -- e.g., Material, Weight
-    attribute_value VARCHAR(255) NOT NULL, -- e.g., Gold, 5g
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    attribute_name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Table for possible values for each attribute
+CREATE TABLE attribute_values (
+    value_id INT PRIMARY KEY AUTO_INCREMENT,
+    attribute_id INT NOT NULL,
+    attribute_value VARCHAR(255) NOT NULL,
+    FOREIGN KEY (attribute_id) REFERENCES attributes(attribute_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- Junction table linking products with specific attribute values
