@@ -103,6 +103,7 @@ CREATE TABLE product_attributes (
 -- ========================================
 
 
+
 -- 8. Admin Users Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
