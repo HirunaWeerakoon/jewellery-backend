@@ -120,7 +120,6 @@ CREATE TABLE shopping_cart (
 CREATE TABLE orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
     order_number VARCHAR(50) UNIQUE NOT NULL,
-    user_id INT NOT NULL,
     order_status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded') DEFAULT 'pending',
     payment_status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending',
     subtotal DECIMAL(10,2) NOT NULL,
