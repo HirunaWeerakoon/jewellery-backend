@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.example.jewellery_backend.model.Category;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+@Table(name = "products")
 @Entity
 public class Product {
 
