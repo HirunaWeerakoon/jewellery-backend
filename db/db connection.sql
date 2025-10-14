@@ -274,26 +274,6 @@ INSERT INTO product_materials (product_id, material_id, quantity) VALUES
 -- ANU'S EDITS
 -- ========================================
 
--- TABLE FOR SLP UPLOADING
-CREATE TABLE slips (
-    slip_id VARCHAR(10) PRIMARY KEY,
-    order_id VARCHAR(10) NOT NULL,
-    uploaded_by_user_id VARCHAR(20) UNSIGNED,
-    file_name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(512) NOT NULL,
-    file_type VARCHAR(100) NOT NULL,
-    file_size INT NOT NULL,
-    checksum VARCHAR(128),
-    notes VARCHAR(512),
-    slip_status ENUM('pending', 'slip_uploaded', 'verified') DEFAULT 'pending',
-    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    verified BOOLEAN NOT NULL DEFAULT FALSE,
-    verified_at TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_order_slips_order
-        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_uploaded_by_user_id
-        FOREIGN KEY (uploaded_by_user_id) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ========================================
 -- USEFUL QUERIES
