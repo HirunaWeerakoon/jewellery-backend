@@ -99,6 +99,19 @@ CREATE TABLE product_attributes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Junction table linking products with specific attribute values
+CREATE TABLE product_attribute_values (
+    product_id INT NOT NULL,
+    value_id INT NOT NULL,
+    PRIMARY KEY (product_id, value_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (value_id) REFERENCES attribute_values(value_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
 
 
 -- ========================================
