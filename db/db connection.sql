@@ -87,8 +87,8 @@ CREATE TABLE product_images (
 CREATE TABLE product_attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
     product_id INT NOT NULL,
-    name VARCHAR(100) NOT NULL, -- e.g., Material, Weight
-    value VARCHAR(255) NOT NULL, -- e.g., Gold, 5g
+    attribute_name VARCHAR(100) NOT NULL, -- e.g., Material, Weight
+    attribute_value VARCHAR(255) NOT NULL, -- e.g., Gold, 5g
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(product_id)
