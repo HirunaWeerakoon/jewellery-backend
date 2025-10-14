@@ -90,7 +90,7 @@ CREATE TABLE product_images (
 
 
 
--- Master table for attribute definitions
+-- 7. Master table for attribute definitions
 CREATE TABLE attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
     attribute_name VARCHAR(100) NOT NULL UNIQUE
