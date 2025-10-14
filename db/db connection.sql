@@ -154,7 +154,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 );
 
--- 12. Order Items Table
+-- 11. Order Items Table
 CREATE TABLE order_items (
     order_item_id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
