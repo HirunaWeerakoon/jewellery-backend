@@ -82,6 +82,8 @@ CREATE TABLE product_images (
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+
+-- FOR SEARCH BAR IMPLEMENTATION
 CREATE TABLE product_attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
     product_id INT NOT NULL,
