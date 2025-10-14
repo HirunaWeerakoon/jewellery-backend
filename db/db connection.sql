@@ -86,21 +86,7 @@ CREATE TABLE product_images (
 -- USER MANAGEMENT TABLES
 -- ========================================
 
--- 7. Users Table
-CREATE TABLE users (
-    user_id INT PRIMARY KEY AUTO_INCREMENT,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    date_of_birth DATE,
-    gender ENUM('Male', 'Female', 'Other'),
-    is_active BOOLEAN DEFAULT TRUE,
-    email_verified BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+
 -- 8. Admin Users Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
