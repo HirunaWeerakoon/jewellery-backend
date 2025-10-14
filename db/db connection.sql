@@ -108,7 +108,6 @@ CREATE TABLE admin_users (
 -- 10. Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
