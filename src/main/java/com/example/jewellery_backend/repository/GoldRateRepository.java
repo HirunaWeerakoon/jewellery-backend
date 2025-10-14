@@ -1,5 +1,5 @@
 package com.example.jewellery_backend.repository;
-import com.example.jewellery_backend.model.GoldRate;
+import com.example.jewellery_backend.entity.GoldRate;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

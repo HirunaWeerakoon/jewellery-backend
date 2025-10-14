@@ -3,7 +3,7 @@ package com.example.jewellery_backend.controller;
 import com.example.jewellery_backend.dto.OrderRequestDto;
 import com.example.jewellery_backend.dto.OrderResponseDto;
 import com.example.jewellery_backend.entity.Order;
-import com.example.jewellery_backend.entity.OrderStatus;
+import com.example.jewellery_backend.entity.OrderStatusType;
 import com.example.jewellery_backend.entity.Slip;
 import com.example.jewellery_backend.service.FileStorageService;
 import com.example.jewellery_backend.service.OrderService;
@@ -63,7 +63,7 @@ public class OrderController {
      * List orders. Optionally filter by status using ?status=SLIP_UPLOADED or ?status=PENDING etc.
      */
     @GetMapping
-    public ResponseEntity<List<OrderResponseDto>> listOrders(@RequestParam(required = false) OrderStatus status) {
+    public ResponseEntity<List<OrderResponseDto>> listOrders(@RequestParam(required = false) OrderStatusType status) {
         List<Order> orders;
         if (status != null) orders = orderService.findByStatus(status);
         else orders = orderService.findAll();
@@ -89,7 +89,7 @@ public class OrderController {
      */
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long id,
-                                                              @RequestParam("status") OrderStatus status) {
+                                                              @RequestParam("status") OrderStatusType status) {
         Order updated = orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok(Mapper.toOrderResponseDto(updated));
     }

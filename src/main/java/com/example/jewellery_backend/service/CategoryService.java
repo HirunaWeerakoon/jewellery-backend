@@ -1,6 +1,6 @@
 package com.example.jewellery_backend.service;
 
-import com.example.jewellery_backend.model.Category;
+import com.example.jewellery_backend.entity.Category;
 import com.example.jewellery_backend.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 

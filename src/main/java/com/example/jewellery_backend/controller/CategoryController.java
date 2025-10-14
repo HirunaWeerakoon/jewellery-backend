@@ -1,6 +1,6 @@
 package com.example.jewellery_backend.controller;
 
-import com.example.jewellery_backend.model.Category;
+import com.example.jewellery_backend.entity.Category;
 import com.example.jewellery_backend.service.CategoryService;
 import org.springframework.web.bind.annotation.*;
 

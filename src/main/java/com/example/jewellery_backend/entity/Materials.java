@@ -1,4 +1,4 @@
-package com.example.jewellery_backend.model;
+package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -36,7 +36,7 @@ public class Materials {
     private BigDecimal currentRate;
 
     @Column(name = "unit", nullable = false, length = 20)
-    private String unit;
+    private String unit = "gram";
 
     @UpdateTimestamp
     @Column(name = "last_updated", columnDefinition = "TIMESTAMP")
@@ -49,7 +49,7 @@ public class Materials {
     @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    // Bidirectional relation to Product (optional)
+    // Optional: One-to-Many relationship with Product entity
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     @ToString.Exclude
