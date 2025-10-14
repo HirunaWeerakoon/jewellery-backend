@@ -86,21 +86,7 @@ CREATE TABLE product_images (
 -- USER MANAGEMENT TABLES
 -- ========================================
 
--- 7. Users Table
-CREATE TABLE users (
-    user_id INT PRIMARY KEY AUTO_INCREMENT,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    date_of_birth DATE,
-    gender ENUM('Male', 'Female', 'Other'),
-    is_active BOOLEAN DEFAULT TRUE,
-    email_verified BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+
 -- 8. Admin Users Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -114,25 +100,7 @@ CREATE TABLE admin_users (
     last_login TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- 9. User Addresses Table
-CREATE TABLE user_addresses (
-    address_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    address_type ENUM('billing', 'shipping', 'both') DEFAULT 'both',
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    company VARCHAR(100),
-    address_line1 VARCHAR(200) NOT NULL,
-    address_line2 VARCHAR(200),
-    city VARCHAR(100) NOT NULL,
-    state VARCHAR(100) NOT NULL,
-    postal_code VARCHAR(20) NOT NULL,
-    country VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+
 
 -- ========================================
 -- SHOPPING & ORDER TABLES
@@ -140,21 +108,18 @@ CREATE TABLE user_addresses (
 -- 10. Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_user_product (user_id, product_id)
+    UNIQUE KEY unique_product (product_id)
 );
 
 -- 11. Orders Table
 CREATE TABLE orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
     order_number VARCHAR(50) UNIQUE NOT NULL,
-    user_id INT NOT NULL,
     order_status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded') DEFAULT 'pending',
     payment_status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending',
     subtotal DECIMAL(10,2) NOT NULL,
@@ -163,14 +128,9 @@ CREATE TABLE orders (
     discount_amount DECIMAL(10,2) DEFAULT 0,
     total_amount DECIMAL(10,2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'USD',
-    billing_address_id INT NOT NULL,
-    shipping_address_id INT NOT NULL,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (billing_address_id) REFERENCES user_addresses(address_id),
-    FOREIGN KEY (shipping_address_id) REFERENCES user_addresses(address_id)
 );
 
 -- 12. Order Items Table
@@ -191,16 +151,24 @@ CREATE TABLE order_items (
 -- ADDITIONAL TABLES
 -- ========================================
 
--- 13. Wishlist Table
-CREATE TABLE wishlist (
-    wishlist_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    product_id INT NOT NULL,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_user_product_wishlist (user_id, product_id)
-);
+
+-- TABLE FOR SLP UPLOADING
+CREATE TABLE slips (
+    slip_id VARCHAR(10) PRIMARY KEY,
+    order_id VARCHAR(10) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(512) NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    file_size INT NOT NULL,
+    checksum VARCHAR(128),
+    notes VARCHAR(512),
+    slip_status ENUM('pending', 'slip_uploaded', 'verified') DEFAULT 'pending',
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    verified_at TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT fk_order_slips_order
+        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ========================================
 -- INDEXES FOR PERFORMANCE
@@ -223,7 +191,6 @@ CREATE INDEX idx_orders_date ON orders(created_at);
 
 -- Shopping and user experience
 CREATE INDEX idx_cart_user ON shopping_cart(user_id);
-CREATE INDEX idx_wishlist_user ON wishlist(user_id);
 
 -- ========================================
 -- DYNAMIC PRICING FUNCTION
@@ -311,30 +278,7 @@ INSERT INTO product_materials (product_id, material_id, quantity) VALUES
 (3, 2, 2.0), -- 2 grams of 18K Gold
 (3, 4, 0.5); -- 0.5 carat total Diamond
 
--- ========================================
--- ANU'S EDITS
--- ========================================
 
--- TABLE FOR SLP UPLOADING
-CREATE TABLE slips (
-    slip_id VARCHAR(10) PRIMARY KEY,
-    order_id VARCHAR(10) NOT NULL,
-    uploaded_by_user_id VARCHAR(20) UNSIGNED,
-    file_name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(512) NOT NULL,
-    file_type VARCHAR(100) NOT NULL,
-    file_size INT NOT NULL,
-    checksum VARCHAR(128),
-    notes VARCHAR(512),
-    slip_status ENUM('pending', 'slip_uploaded', 'verified') DEFAULT 'pending',
-    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    verified BOOLEAN NOT NULL DEFAULT FALSE,
-    verified_at TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_order_slips_order
-        FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_uploaded_by_user_id
-        FOREIGN KEY (uploaded_by_user_id) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ========================================
 -- USEFUL QUERIES
