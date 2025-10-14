@@ -83,7 +83,14 @@ CREATE TABLE product_images (
 );
 
 
--- 7. Product Attributes Table (FOR SEARCH BAR IMPLEMENTATION)
+
+-- =========================================
+-- TABLES FOR SEARCH BAR IMPLEMENTATION
+-- =========================================
+
+
+
+-- 7. Product Attributes Table
 CREATE TABLE product_attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
     attribute_name VARCHAR(100) NOT NULL, -- e.g., Material, Weight
