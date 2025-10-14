@@ -123,7 +123,10 @@ CREATE TABLE admin_users (
 -- ========================================
 -- SHOPPING & ORDER TABLES
 -- ========================================
--- 10. Shopping Cart Table
+
+
+
+-- 9. Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
     product_id INT NOT NULL,
