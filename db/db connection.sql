@@ -278,9 +278,6 @@ INSERT INTO product_materials (product_id, material_id, quantity) VALUES
 (3, 2, 2.0), -- 2 grams of 18K Gold
 (3, 4, 0.5); -- 0.5 carat total Diamond
 
--- ========================================
--- ANU'S EDITS
--- ========================================
 
 
 -- ========================================

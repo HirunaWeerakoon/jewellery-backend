@@ -1,40 +1,35 @@
 package com.example.jewellery_backend.model;
 
 import jakarta.persistence.*;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.*;
 
-@Table(name = "category")
 @Entity
+@Table(name = "category")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long category_id;   // ONLY @Id, no @OneToMany here
+    @Column(name = "category_id")
+    private Long categoryId;
 
-    private String category_name;
+    @Column(nullable = false, length = 150)
+    private String name;
 
-    // This is the correct place for OneToMany
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    // Bidirectional relation with Product
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Product> products= new ArrayList<>();
-
-    // --- Constructors ---
-    public Category() {}
-
-    public Category(String name) {
-        this.category_name = name;
-    }
-
-    // --- Getters & Setters ---
-    public Long getId() { return category_id; }
-    public void setId(Long id) { this.category_id = id; }
-
-    public String getName() { return category_name; }
-    public void setName(String name) { this.category_name = name; }
-
-    public List<Product> getProducts() { return products; }
-    public void setProducts(List<Product> products) { this.products = products; }
+    private List<Product> products = new ArrayList<>();
 }
