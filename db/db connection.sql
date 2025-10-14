@@ -106,7 +106,7 @@ CREATE TABLE attribute_values (
         ON UPDATE CASCADE
 );
 
--- Junction table linking products with specific attribute values
+-- 9. Junction table linking products with specific attribute values
 CREATE TABLE product_attribute_values (
     product_id INT NOT NULL,
     value_id INT NOT NULL,
