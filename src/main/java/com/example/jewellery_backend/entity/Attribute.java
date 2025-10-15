@@ -22,7 +22,8 @@ public class Attribute {
     @Column(name = "attribute_name", nullable = false, length = 100, unique = true)
     private String attributeName;
 
-    // One-to-many relationship to AttributeValue
     @OneToMany(mappedBy = "attribute", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AttributeValue> attributeValues = new ArrayList<>();
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<AttributeValue> values;
 }

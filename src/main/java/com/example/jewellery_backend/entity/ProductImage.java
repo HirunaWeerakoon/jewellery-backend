@@ -1,10 +1,6 @@
 package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-
 import lombok.*;
 
 /**
@@ -40,8 +36,4 @@ public class ProductImage {
 
     @Column(name = "sort_order")
     private Integer sortOrder = 0;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP")
-    private LocalDateTime createdAt;
 }

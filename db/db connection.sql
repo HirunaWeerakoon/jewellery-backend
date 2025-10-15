@@ -1,74 +1,73 @@
- CREATE DATABASE jewelry_ecommerce;
- USE jewelry_ecommerce;
+CREATE DATABASE jewelry_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE jewelry_ecommerce;
+
+SET FOREIGN_KEY_CHECKS = 0;
+SET NAMES utf8mb4;
+
+
 
 -- ========================================
 -- CORE TABLES
 -- ========================================
 
--- 1. Materials Table
-CREATE TABLE materials (
-    material_id INT PRIMARY KEY AUTO_INCREMENT,
-    material_name VARCHAR(100) NOT NULL UNIQUE,
-    current_rate DECIMAL(10,4) NOT NULL, -- Price per gram/unit
-    unit VARCHAR(20) NOT NULL DEFAULT 'gram', -- gram, ounce, carat, etc.
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
--- 2. Material Rate History Table
-CREATE TABLE material_rate_history (
+
+-- 1. Gold Rate History Table (simple time series of gold rates)
+CREATE TABLE gold_rate_history (
     history_id INT PRIMARY KEY AUTO_INCREMENT,
-    material_id INT NOT NULL,
-    rate DECIMAL(10,4) NOT NULL,
+    rate DECIMAL(12,4) NOT NULL,         -- price per gram (or your chosen unit)
     effective_date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (material_id) REFERENCES materials(material_id)
-);
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 3. Categories Table
+-- 2. Categories Table
 CREATE TABLE categories (
     category_id INT PRIMARY KEY AUTO_INCREMENT,
     category_name VARCHAR(100) NOT NULL,
+    category_slug VARCHAR(120) NOT NULL UNIQUE,
     parent_category_id INT NULL,
-    description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_category_id) REFERENCES categories(category_id) ON DELETE SET NULL
-);
+    CONSTRAINT fk_categories_parent FOREIGN KEY (parent_category_id)
+        REFERENCES categories(category_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3. categories_closure table (stores all ancestor->descendant pairs)
+CREATE TABLE categories_closure (
+    ancestor_id INT NOT NULL,
+    descendant_id INT NOT NULL,
+    depth INT NOT NULL,
+    PRIMARY KEY (ancestor_id, descendant_id),
+    FOREIGN KEY (ancestor_id) REFERENCES categories(category_id) ON DELETE CASCADE,
+    FOREIGN KEY (descendant_id) REFERENCES categories(category_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 4. Products Table
 CREATE TABLE products (
     product_id INT PRIMARY KEY AUTO_INCREMENT,
     product_name VARCHAR(200) NOT NULL,
     sku VARCHAR(100) UNIQUE NOT NULL,
-    category_id INT NOT NULL,
     description TEXT,
-    base_price DECIMAL(10,2) NOT NULL DEFAULT 0, -- Base manufacturing cost
-    markup_percentage DECIMAL(5,2) NOT NULL DEFAULT 0, -- Profit margin
-    weight DECIMAL(8,3), -- Total weight in grams
-    dimensions VARCHAR(100), -- L x W x H
+    base_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+    markup_percentage DECIMAL(6,2) NOT NULL DEFAULT 0,
+    weight DECIMAL(9,3),
+    dimensions VARCHAR(100),
     stock_quantity INT NOT NULL DEFAULT 0,
     min_stock_level INT DEFAULT 5,
     is_active BOOLEAN DEFAULT TRUE,
     featured BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id)
-);
+    is_gold BOOLEAN DEFAULT FALSE,
+    gold_weight_grams DECIMAL(12,4) DEFAULT 0.0000, -- grams of gold contained
+    gold_purity_karat TINYINT NULL               -- e.g., 24, 18, 14 (NULL if not applicable)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 5. Product Materials Junction Table
-CREATE TABLE product_materials (
-    product_material_id INT PRIMARY KEY AUTO_INCREMENT,
+-- 5. Product-Categories Junction Table (many-to-many)
+CREATE TABLE product_categories (
     product_id INT NOT NULL,
-    material_id INT NOT NULL,
-    quantity DECIMAL(8,3) NOT NULL, -- Quantity of material used (in material's unit)
-    percentage DECIMAL(5,2), -- Percentage of total product weight
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    category_id INT NOT NULL,
+    PRIMARY KEY (product_id, category_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-    FOREIGN KEY (material_id) REFERENCES materials(material_id),
-    UNIQUE KEY unique_product_material (product_id, material_id)
-);
+    FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 6. Product Images Table
 CREATE TABLE product_images (
@@ -78,46 +77,39 @@ CREATE TABLE product_images (
     alt_text VARCHAR(200),
     is_primary BOOLEAN DEFAULT FALSE,
     sort_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 
 -- =========================================
--- TABLES FOR SEARCH BAR IMPLEMENTATION
+-- FILTER / ATTRIBUTE TABLES
 -- =========================================
 
 
 
--- 7. Master table for attribute definitions
+-- 7. Attributes Table
 CREATE TABLE attributes (
     attribute_id INT PRIMARY KEY AUTO_INCREMENT,
     attribute_name VARCHAR(100) NOT NULL UNIQUE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 8. Table for possible values for each attribute
+-- 8. Attribute Values Table
 CREATE TABLE attribute_values (
     value_id INT PRIMARY KEY AUTO_INCREMENT,
     attribute_id INT NOT NULL,
-    attribute_value VARCHAR(255) NOT NULL,
-    FOREIGN KEY (attribute_id) REFERENCES attributes(attribute_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
+    attribute_value VARCHAR(200) NOT NULL,
+    FOREIGN KEY (attribute_id) REFERENCES attributes(attribute_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 9. Junction table linking products with specific attribute values
+-- 9. Product-Attribute Values Junction Table
 CREATE TABLE product_attribute_values (
+    pav_id INT PRIMARY KEY AUTO_INCREMENT,
     product_id INT NOT NULL,
     value_id INT NOT NULL,
-    PRIMARY KEY (product_id, value_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    FOREIGN KEY (value_id) REFERENCES attribute_values(value_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+    FOREIGN KEY (value_id) REFERENCES attribute_values(value_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -127,7 +119,7 @@ CREATE TABLE product_attribute_values (
 
 
 
--- 10. Admin Users Table
+-- 10. Admin User Table
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) UNIQUE NOT NULL,
@@ -135,11 +127,11 @@ CREATE TABLE admin_users (
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(200) NOT NULL,
     role ENUM('super_admin', 'admin', 'manager', 'staff') DEFAULT 'staff',
-    permissions JSON, -- Store specific permissions
+    permissions JSON,
     is_active BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -149,13 +141,13 @@ CREATE TABLE admin_users (
 
 
 
--- 11. Cart Header Table: one cart per session
+-- 11. Cart Header Table
 CREATE TABLE cart_header (
   cart_header_id INT PRIMARY KEY AUTO_INCREMENT,
-  session_id VARCHAR(128) NOT NULL UNIQUE,  -- each browser session gets a unique ID
+  session_id VARCHAR(128) NOT NULL UNIQUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 12. Cart Items Table
 CREATE TABLE cart_items (
@@ -168,49 +160,45 @@ CREATE TABLE cart_items (
     FOREIGN KEY (cart_header_id) REFERENCES cart_header(cart_header_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
     UNIQUE KEY unique_cart_product (cart_header_id, product_id)
-)ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- 13. Order Status Type Table
 CREATE TABLE order_status_types (
   order_status_id INT PRIMARY KEY AUTO_INCREMENT,
   order_status_name ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded') DEFAULT 'pending'
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- 14. Payment Status Type Table
 CREATE TABLE payment_status_types (
   payment_status_id INT PRIMARY KEY AUTO_INCREMENT,
   payment_status_name ENUM('pending', 'failed', 'verified', 'refunded') DEFAULT 'pending'
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 15. Orders Table
 CREATE TABLE orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
-    session_id INT NOT NULL,
+    cart_header_id INT NOT NULL,
     user_name VARCHAR(100) NOT NULL,
     user_address VARCHAR(255) NOT NULL,
     telephone_number VARCHAR(20) NOT NULL,
     user_email VARCHAR(255) NOT NULL,
     order_status_id INT NOT NULL,
     payment_status_id INT NOT NULL,
-    subtotal DECIMAL(10,2) NOT NULL,
-    tax_amount DECIMAL(10,2) DEFAULT 0,
-    shipping_amount DECIMAL(10,2) DEFAULT 0,
-    discount_amount DECIMAL(10,2) DEFAULT 0,
-    total_amount DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(12,2) NOT NULL,
+    tax_amount DECIMAL(12,2) DEFAULT 0,
+    shipping_amount DECIMAL(12,2) DEFAULT 0,
+    discount_amount DECIMAL(12,2) DEFAULT 0,
+    total_amount DECIMAL(12,2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'USD',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_status_id) REFERENCES order_status_types(order_status_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (payment_status_id) REFERENCES payment_status_types(payment_status_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (session_id) REFERENCES cart_header(cart_header_id)
-        ON DELETE RESTRICT ON UPDATE CASCADE
-)ENGINE=InnoDB;
-
+    FOREIGN KEY (order_status_id) REFERENCES order_status_types(order_status_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (payment_status_id) REFERENCES payment_status_types(payment_status_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (cart_header_id) REFERENCES cart_header(cart_header_id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 16. Order Items Table
 CREATE TABLE order_items (
@@ -218,15 +206,15 @@ CREATE TABLE order_items (
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL, -- Price at time of order
-    total_price DECIMAL(10,2) NOT NULL,
-    material_rates_snapshot JSON, -- Store material rates at time of order
+    unit_price DECIMAL(12,2) NOT NULL,
+    total_price DECIMAL(12,2) NOT NULL,
+    material_rates_snapshot JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
-);
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 17. Slips Table (TABLE FOR SLP UPLOADING)
+-- 17. Slips Table
 CREATE TABLE slips (
     slip_id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
@@ -240,12 +228,8 @@ CREATE TABLE slips (
     uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
     verified_at TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_payment_status_id
-        FOREIGN KEY (payment_status_id) REFERENCES payment_status_types(payment_status_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_order_slips_order
-        FOREIGN KEY (order_id) REFERENCES orders(order_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT fk_payment_status_id FOREIGN KEY (payment_status_id) REFERENCES payment_status_types(payment_status_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_order_slips_order FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -266,10 +250,8 @@ CREATE TABLE reviews (
     comment_text TEXT,
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_approved BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -279,205 +261,137 @@ CREATE TABLE reviews (
 
 
 
--- 1. Products Table
-CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_active ON products(is_active);
 CREATE INDEX idx_products_featured ON products(featured);
 CREATE INDEX idx_products_sku ON products(sku);
+CREATE INDEX idx_products_name ON products(product_name(120));
 
--- 2. Materials Table
-CREATE INDEX idx_materials_active ON materials(is_active);
+CREATE INDEX idx_gold_rate_history_date ON gold_rate_history(effective_date);
 
--- 3. Material Rate History
-CREATE INDEX idx_material_history_date ON material_rate_history(effective_date);
-
--- 4. Orders Table
 CREATE INDEX idx_orders_status ON orders(order_status_id);
 CREATE INDEX idx_orders_payment_status ON orders(payment_status_id);
-CREATE INDEX idx_orders_session ON orders(session_id);
+CREATE INDEX idx_orders_cart_header ON orders(cart_header_id);
 CREATE INDEX idx_orders_created_at ON orders(created_at);
 
--- 5. Shopping Cart Table
+CREATE INDEX idx_pc_category ON product_categories(category_id);
+CREATE INDEX idx_pc_product ON product_categories(product_id);
+
 CREATE INDEX idx_cart_user ON cart_header(session_id);
 
--- 6. Product Materials
-CREATE INDEX idx_product_materials_product ON product_materials(product_id);
-CREATE INDEX idx_product_materials_material ON product_materials(material_id);
-
--- 7. Reviews Table
 CREATE INDEX idx_reviews_product ON reviews(product_id);
 CREATE INDEX idx_reviews_rating ON reviews(rating);
 
+CREATE INDEX idx_categories_parent ON categories(parent_category_id);
+CREATE INDEX idx_closure_descendant ON categories_closure(descendant_id);
+CREATE INDEX idx_closure_depth ON categories_closure(depth);
+
 
 
 -- ========================================
--- DYNAMIC PRICING FUNCTION
+-- DYNAMIC PRICING FUNCTION (gold-only; no material table)
 -- ========================================
 
+
+
+-- Logic:
+--  - If product.is_gold = TRUE and gold_weight_grams > 0 and gold_purity_karat IS NOT NULL:
+--       material_cost = gold_weight_grams * (gold_purity_karat / 24) * latest_gold_rate
+--  - Else material_cost = 0
+--  - Final price = (base_price + material_cost) * (1 + markup_percentage/100)
 
 
 DELIMITER //
 CREATE FUNCTION calculate_product_price(p_product_id INT)
-RETURNS DECIMAL(10,2)
-READS SQL DATA
+RETURNS DECIMAL(12,2)
 DETERMINISTIC
+READS SQL DATA
 BEGIN
-    DECLARE v_base_price DECIMAL(10,2) DEFAULT 0;
-    DECLARE v_markup_percentage DECIMAL(5,2) DEFAULT 0;
-    DECLARE v_material_cost DECIMAL(10,2) DEFAULT 0;
-    DECLARE v_final_price DECIMAL(10,2);
+    DECLARE v_base_price DECIMAL(12,2) DEFAULT 0;
+    DECLARE v_markup_percentage DECIMAL(6,2) DEFAULT 0;
+    DECLARE v_is_gold BOOLEAN DEFAULT FALSE;
+    DECLARE v_gold_weight DECIMAL(12,4) DEFAULT 0;
+    DECLARE v_gold_karat TINYINT DEFAULT NULL;
+    DECLARE v_latest_rate DECIMAL(12,4) DEFAULT 0;
+    DECLARE v_material_cost DECIMAL(12,2) DEFAULT 0;
+    DECLARE v_final_price DECIMAL(12,2);
 
-    -- Get base price and markup from products table
-    SELECT base_price, markup_percentage
-    INTO v_base_price, v_markup_percentage
+    SELECT base_price, markup_percentage, is_gold, gold_weight_grams, gold_purity_karat
+    INTO v_base_price, v_markup_percentage, v_is_gold, v_gold_weight, v_gold_karat
     FROM products
     WHERE product_id = p_product_id;
 
-    -- Calculate total material cost using only active materials
-    SELECT COALESCE(SUM(pm.quantity * m.current_rate), 0)
-    INTO v_material_cost
-    FROM product_materials pm
-    JOIN materials m ON pm.material_id = m.material_id
-    WHERE pm.product_id = p_product_id
-      AND m.is_active = TRUE;
+    -- get latest gold rate (most recent effective_date). If none, rate = 0
+    SELECT COALESCE(rate, 0) INTO v_latest_rate
+    FROM gold_rate_history
+    WHERE effective_date = (SELECT MAX(effective_date) FROM gold_rate_history)
+    LIMIT 1;
 
-    -- Final price calculation
+    IF v_is_gold AND v_gold_weight > 0 AND v_gold_karat IS NOT NULL THEN
+        -- purity factor = karat / 24
+        SET v_material_cost = v_gold_weight * (v_gold_karat / 24.0) * v_latest_rate;
+    ELSE
+        SET v_material_cost = 0;
+    END IF;
+
     SET v_final_price = (v_base_price + v_material_cost) * (1 + v_markup_percentage / 100);
 
-    RETURN v_final_price;
+    RETURN ROUND(v_final_price, 2);
 END //
 DELIMITER ;
 
 
 
 -- ========================================
--- SAMPLE DATA INSERTION
+-- SAMPLE DATA (categories + example products)
 -- ========================================
 
 
 
--- 1. Insert sample materials
-INSERT INTO materials (material_name, current_rate, unit) VALUES
-('Gold 24K', 65.50, 'gram'),
-('Gold 18K', 49.00, 'gram'),
-('Silver 925', 0.85, 'gram'),
-('Diamond', 5000.00, 'carat'),
-('Platinum', 32.00, 'gram'),
-('Rose Gold 14K', 42.00, 'gram');
+INSERT INTO categories (category_name, category_slug, description) VALUES
+('Jewellery', 'jewellery', 'All jewellery'),
+('Rings', 'rings', 'All types of rings'),
+('Necklaces', 'necklaces', 'Necklaces, chains, and pendants'),
+('Earrings', 'earrings', 'Stud, hoops and drop earrings'),
+('Bracelets', 'bracelets', 'Tennis, bangles and charm bracelets'),
+('Engagement Rings', 'engagement-rings', 'Engagement rings (child of Rings)'),
+('Wedding Bands', 'wedding-bands', 'Wedding bands (child of Rings)'),
+('Fashion Rings', 'fashion-rings', 'Fashion rings (child of Rings)');
 
 
--- Insert sample categories
+-- After inserting categories, populate closure table (self-relations)
+START TRANSACTION;
+INSERT INTO categories_closure (ancestor_id, descendant_id, depth)
+SELECT category_id, category_id, 0 FROM categories;
 
--- 2. Main categories
-INSERT INTO categories (category_name, description) VALUES
-('Rings', 'All types of rings including engagement, wedding, and fashion rings'),
-('Necklaces', 'Necklaces, chains, and pendants'),
-('Earrings', 'Stud earrings, hoops, and drop earrings'),
-('Bracelets', 'Tennis bracelets, bangles, and charm bracelets'),
-('Watches', 'Luxury and fashion watches');
+INSERT INTO categories_closure (ancestor_id, descendant_id, depth)
+SELECT c.parent_category_id AS ancestor_id, c.category_id AS descendant_id, 1
+FROM categories c
+WHERE c.parent_category_id IS NOT NULL;
 
--- 3. Subcategories
-INSERT INTO categories (category_name, parent_category_id, description) VALUES
-('Engagement Rings', 1, 'Diamond and gemstone engagement rings'),
-('Wedding Bands', 1, 'Plain and decorated wedding bands'),
-('Fashion Rings', 1, 'Statement and everyday fashion rings');
-
--- 4. Insert sample admin user
-INSERT INTO admin_users (username, email, password_hash, full_name, role) VALUES
-('admin', 'admin@jewelrystore.com', '$2y$10$example_hash_here', 'System Administrator', 'super_admin');
-
--- 5. Insert sample products
-INSERT INTO products (product_name, sku, category_id, description, base_price, markup_percentage, weight, stock_quantity) VALUES
-('Classic Diamond Engagement Ring', 'ENG001', 6, 'Beautiful solitaire diamond engagement ring in 18K white gold', 500.00, 150.00, 3.5, 5),
-('Gold Wedding Band', 'WED001', 7, 'Simple 14K gold wedding band', 200.00, 100.00, 4.2, 10),
-('Diamond Stud Earrings', 'EAR001', 3, 'Classic diamond stud earrings in 18K gold', 800.00, 120.00, 2.1, 8);
-
--- Insert product materials
-
--- 6. Engagement Ring
-INSERT INTO product_materials (product_id, material_id, quantity) VALUES
-(1, 2, 3.0),  -- 3 grams of 18K Gold
-(1, 4, 1.0);  -- 1 carat Diamond
-
--- 7. Wedding Band
-INSERT INTO product_materials (product_id, material_id, quantity) VALUES
-(2, 6, 4.0);  -- 4 grams of Rose Gold 14K
-
--- 8. Earrings
-INSERT INTO product_materials (product_id, material_id, quantity) VALUES
-(3, 2, 2.0),  -- 2 grams of 18K Gold
-(3, 4, 0.5);  -- 0.5 carat Diamond
+INSERT INTO categories_closure (ancestor_id, descendant_id, depth)
+SELECT pc.ancestor_id, c.category_id, pc.depth + 1
+FROM categories_closure pc
+JOIN categories c ON c.parent_category_id = pc.descendant_id
+WHERE pc.ancestor_id <> c.category_id;
+COMMIT;
 
 
--- Attributes for search bar
-
--- 9. Attributes
-INSERT INTO attributes (attribute_name) VALUES
-('Metal'),
-('Stone'),
-('Ring Size'),
-('Style');
-
--- 10. Attribute Values
-INSERT INTO attribute_values (attribute_id, attribute_value) VALUES
-(1, 'Gold 18K'),
-(1, 'Rose Gold 14K'),
-(1, 'Silver 925'),
-(2, 'Diamond'),
-(2, 'Emerald'),
-(3, '5'),
-(3, '6'),
-(3, '7'),
-(4, 'Engagement'),
-(4, 'Wedding'),
-(4, 'Fashion');
+-- Example gold rate history (latest effective_date will be used in pricing)
+INSERT INTO gold_rate_history (rate, effective_date) VALUES
+(49.0000, '2025-01-01'),
+(50.5000, '2025-06-01');
 
 
--- Links products to attribute values
-
--- 11. Classic Diamond Engagement Ring
-INSERT INTO product_attribute_values (product_id, value_id) VALUES
-(1, 1), -- Gold 18K
-(1, 4), -- Diamond
-(1, 6), -- Ring Size 5
-(1, 10); -- Style: Engagement
-
--- 12. Gold Wedding Band
-INSERT INTO product_attribute_values (product_id, value_id) VALUES
-(2, 2), -- Rose Gold 14K
-(2, 4), -- Diamond (optional: maybe plain, depends on your sample)
-(2, 7), -- Ring Size 6
-(2, 11); -- Style: Wedding
-
--- 13. Diamond Stud Earrings
-INSERT INTO product_attribute_values (product_id, value_id) VALUES
-(3, 1), -- Gold 18K
-(3, 4), -- Diamond
-(3, 9), -- Ring Size 7 (or can be null if not applicable)
-(3, 12); -- Style: Fashion
+-- Example products
+-- product 2 is a gold product with 4 grams of 14K gold
+INSERT INTO products (product_name, sku, description, base_price, markup_percentage, weight, stock_quantity, is_gold, gold_weight_grams, gold_purity_karat) VALUES
+('Classic Diamond Engagement Ring', 'ENG001', 'Beautiful solitaire diamond engagement ring', 500.00, 150.00, 3.5, 5, FALSE, 0.0000, NULL),
+('Gold Wedding Band', 'WED001', 'Simple 14K gold wedding band', 200.00, 100.00, 4.2, 10, TRUE, 4.0000, 14),
+('Diamond Stud Earrings', 'EAR001', 'Classic diamond stud earrings', 800.00, 120.00, 2.1, 8, FALSE, 0.0000, NULL);
 
 
--- ========================================
--- USEFUL QUERIES
--- ========================================
--- WHERE p.product_id = 1;
--- Query to get current product prices
--- SELECT 
---     p.product_name,
---     p.sku,
---     calculate_product_price(p.product_id) as current_price,
---     p.stock_quantity
--- FROM products p 
--- WHERE p.is_active = TRUE;
+-- Map products to categories (example)
+-- INSERT INTO product_categories (product_id, category_id) VALUES (1, <engagement_rings_id>), (2, <wedding_bands_id>), (3, <earrings_id>);
 
--- Query to get product with materials breakdown
--- SELECT 
---     p.product_name,
---     m.material_name,
---     pm.quantity,
---     m.current_rate,
---     (pm.quantity * m.current_rate) as material_cost
--- FROM products p
--- JOIN product_materials pm ON p.product_id = pm.product_id
--- JOIN materials m ON pm.material_id = m.material_id
--- WHERE p.product_id = 1;
+
+SET FOREIGN_KEY_CHECKS = 1;

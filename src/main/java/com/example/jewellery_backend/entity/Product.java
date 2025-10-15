@@ -2,7 +2,8 @@ package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
@@ -57,20 +58,30 @@ public class Product {
     @Column(name = "featured")
     private Boolean featured = false;
 
-    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP")
-    @org.hibernate.annotations.CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(name = "is_gold")
+    private Boolean isGold = false;
 
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
-    @org.hibernate.annotations.UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(name = "gold_weight_grams", precision = 12, scale = 4)
+    private BigDecimal goldWeightGrams;
 
-    // --- relationships ---
+    @Column(name = "gold_purity_karat")
+    private Integer goldPurityKarat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    @JsonBackReference
+    // product_images (1:N)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Category category;
+    private List<ProductImage> images;
+
+    // product_categories (mapped via ProductCategory entity)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductCategory> productCategories;
+
+    // product_attribute_values
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductAttributeValue> attributeValues;
 }

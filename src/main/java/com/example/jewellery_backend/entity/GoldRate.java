@@ -6,13 +6,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "material_rate_history")
+@Table(name = "gold_rate_history")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,23 +22,18 @@ public class GoldRate {
     @Column(name = "history_id")
     private Long historyId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "material_id", nullable = false)
-    private Materials material;
-
-    @Column(name = "rate", precision = 14, scale = 4, nullable = false)
+    @Column(name = "rate", precision = 10, scale = 4, nullable = false)
     private BigDecimal rate;
 
     @Column(name = "effective_date", nullable = false)
     private LocalDate effectiveDate;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     // Optional convenience constructor
-    public GoldRate(Materials material, BigDecimal rate, LocalDate effectiveDate) {
-        this.material = material;
+    public GoldRate(BigDecimal rate, LocalDate effectiveDate) {
         this.rate = rate;
         this.effectiveDate = effectiveDate;
     }

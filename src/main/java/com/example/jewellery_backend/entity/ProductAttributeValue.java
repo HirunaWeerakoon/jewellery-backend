@@ -9,20 +9,20 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@IdClass(ProductAttributeValueId.class)
 public class ProductAttributeValue {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pav_id")
+    private Integer id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Product product;
 
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "value_id", nullable = false)
     @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private AttributeValue attributeValue;
 }

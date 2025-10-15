@@ -15,6 +15,7 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
  */
 @Entity
 @Table(name = "order_items")
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,10 +33,12 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @ToString.Exclude
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @ToString.Exclude
     private Product product;
 
     @Column(name = "quantity", nullable = false)
