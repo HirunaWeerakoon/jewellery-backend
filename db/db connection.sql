@@ -261,29 +261,181 @@ CREATE TABLE reviews (
 
 
 
-CREATE INDEX idx_products_active ON products(is_active);
-CREATE INDEX idx_products_featured ON products(featured);
-CREATE INDEX idx_products_sku ON products(sku);
-CREATE INDEX idx_products_name ON products(product_name(120));
+-- ====== PRODUCT / CATEGORY / IMAGE / ATTRIBUTE INDEXES ======
 
-CREATE INDEX idx_gold_rate_history_date ON gold_rate_history(effective_date);
+-- allow fast lookup by SKU (unique already, but re-declare as explicit index if needed)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_products_sku ON products(sku);
 
-CREATE INDEX idx_orders_status ON orders(order_status_id);
-CREATE INDEX idx_orders_payment_status ON orders(payment_status_id);
-CREATE INDEX idx_orders_cart_header ON orders(cart_header_id);
-CREATE INDEX idx_orders_created_at ON orders(created_at);
+-- text search on product name + description (InnoDB fulltext requires MySQL 5.6+)
+CREATE FULLTEXT INDEX IF NOT EXISTS ft_products_name_desc ON products(product_name, description);
 
-CREATE INDEX idx_pc_category ON product_categories(category_id);
-CREATE INDEX idx_pc_product ON product_categories(product_id);
+-- filter by status + price ranges quickly (useful for filtered queries)
+CREATE INDEX IF NOT EXISTS idx_products_active_price ON products(is_active, base_price);
 
-CREATE INDEX idx_cart_user ON cart_header(session_id);
+-- filters often include gold-specific fields (is_gold + gold_purity + gold_weight)
+CREATE INDEX IF NOT EXISTS idx_products_gold_filters ON products(is_gold, gold_purity_karat, gold_weight_grams);
 
-CREATE INDEX idx_reviews_product ON reviews(product_id);
-CREATE INDEX idx_reviews_rating ON reviews(rating);
+-- product -> images join; quickly find primary image(s)
+CREATE INDEX IF NOT EXISTS idx_product_images_product_primary ON product_images(product_id, is_primary, sort_order);
 
-CREATE INDEX idx_categories_parent ON categories(parent_category_id);
-CREATE INDEX idx_closure_descendant ON categories_closure(descendant_id);
-CREATE INDEX idx_closure_depth ON categories_closure(depth);
+-- product_categories has PK(product_id, category_id) but reverse lookup by category_id needs index
+CREATE INDEX IF NOT EXISTS idx_product_categories_category ON product_categories(category_id);
+
+-- product_attribute_values: find products by attribute value quickly
+CREATE INDEX IF NOT EXISTS idx_pav_value ON product_attribute_values(value_id);
+CREATE INDEX IF NOT EXISTS idx_pav_product ON product_attribute_values(product_id);
+
+-- attribute_values: quickly find all values for an attribute
+CREATE INDEX IF NOT EXISTS idx_attribute_values_attribute ON attribute_values(attribute_id);
+
+
+-- ====== CATEGORY HIERARCHY / CLOSURE INDEXES ======
+
+-- find all ancestors/descendants quickly
+CREATE INDEX IF NOT EXISTS idx_categories_closure_descendant ON categories_closure(descendant_id);
+CREATE INDEX IF NOT EXISTS idx_categories_closure_ancestor ON categories_closure(ancestor_id);
+
+
+-- ====== CART / ORDERS / PAYMENTS / SLIPS / REVIEWS INDEXES ======
+
+-- speed up cart lookups by session and items by cart
+CREATE INDEX IF NOT EXISTS idx_cart_header_session ON cart_header(session_id);
+CREATE INDEX IF NOT EXISTS idx_cart_items_cart ON cart_items(cart_header_id);
+CREATE INDEX IF NOT EXISTS idx_cart_items_product ON cart_items(product_id);
+
+-- orders: common filters / listing by date / status / email
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status_id);
+CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status_id);
+CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(user_email(100));
+
+-- order_items: lookup by order, and product-based reporting
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
+
+-- slips: find by order and payment_status quickly
+CREATE INDEX IF NOT EXISTS idx_slips_order_payment ON slips(order_id, payment_status_id);
+
+-- reviews: show reviews per product and filter by rating
+CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating);
+
+
+-- ====== ADMIN / SEARCH / MISC ======
+
+-- admin users lookups
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email(120));
+
+-- gold rate history: queries by date range
+CREATE INDEX IF NOT EXISTS idx_gold_rate_effective_date ON gold_rate_history(effective_date);
+
+
+
+-- ========================================
+-- QUERIES FOR PERFORMANCE
+-- ========================================
+
+
+
+-- 1a: get product ids for a category (including child categories)
+SELECT pc.product_id
+FROM product_categories pc
+JOIN categories_closure cc ON cc.descendant_id = pc.category_id
+WHERE cc.ancestor_id = :categoryId;
+
+-- 2: category + price range + pagination (pageSize + offset)
+SELECT p.product_id, p.product_name, p.sku, p.base_price, p.stock_quantity,
+       pi.image_url AS primary_image
+FROM (
+    -- derived table: candidate product ids from category
+    SELECT DISTINCT pc.product_id
+    FROM product_categories pc
+    JOIN categories_closure cc ON cc.descendant_id = pc.category_id
+    WHERE cc.ancestor_id = :categoryId
+) AS candidate
+JOIN products p ON p.product_id = candidate.product_id
+LEFT JOIN product_images pi
+  ON pi.product_id = p.product_id AND pi.is_primary = TRUE
+WHERE p.is_active = 1
+  AND p.base_price BETWEEN :minPrice AND :maxPrice
+ORDER BY p.base_price ASC, p.product_name
+LIMIT :pageSize OFFSET :offset;
+
+-- 3a: products that have ALL selected attribute values (value_ids passed)
+-- :valueIds is a comma-separated list or provided as a derived table/temporary table
+SELECT p.product_id, p.product_name, p.base_price
+FROM products p
+JOIN product_attribute_values pav ON pav.product_id = p.product_id
+JOIN attribute_values av ON av.value_id = pav.value_id
+JOIN (
+    SELECT DISTINCT pc.product_id
+    FROM product_categories pc
+    JOIN categories_closure cc ON cc.descendant_id = pc.category_id
+    WHERE cc.ancestor_id = :categoryId
+) AS candidate ON candidate.product_id = p.product_id
+WHERE p.is_active = 1
+  AND p.base_price BETWEEN :minPrice AND :maxPrice
+  AND pav.value_id IN (:valueId1, :valueId2, :valueId3) -- selected attribute values
+GROUP BY p.product_id
+HAVING COUNT(DISTINCT pav.value_id) = :numSelectedValues
+ORDER BY p.base_price ASC
+LIMIT :pageSize OFFSET :offset;
+
+-- 4.
+SELECT p.product_id, p.product_name, p.sku, p.base_price, p.gold_purity_karat,
+       pi.image_url AS primary_image
+FROM (
+    -- candidate products: matched by category, text (optional), and/or preliminary attribute join
+    SELECT DISTINCT p.product_id
+    FROM products p
+    -- join by category
+    JOIN product_categories pc ON pc.product_id = p.product_id
+    JOIN categories_closure cc ON cc.descendant_id = pc.category_id
+    -- text search (optional: fallback to LIKE if fulltext not available)
+    WHERE cc.ancestor_id = :categoryId
+      AND p.is_active = 1
+      AND p.base_price BETWEEN :minPrice AND :maxPrice
+      AND (MATCH(p.product_name, p.description) AGAINST (:searchQuery IN NATURAL LANGUAGE MODE)
+           OR :searchQuery IS NULL)
+) candidate
+JOIN products p ON p.product_id = candidate.product_id
+LEFT JOIN product_images pi ON pi.product_id = p.product_id AND pi.is_primary = TRUE
+WHERE
+  -- gold filter (apply only if provided)
+  (:filterIsGold IS NULL OR p.is_gold = :filterIsGold)
+  AND (:purity IS NULL OR p.gold_purity_karat = :purity)
+ORDER BY
+  CASE WHEN :sortBy = 'price_asc' THEN p.base_price END ASC,
+  CASE WHEN :sortBy = 'price_desc' THEN p.base_price END DESC,
+  p.product_name
+LIMIT :pageSize OFFSET :offset;
+
+-- 5: fast count using same derived candidate
+SELECT COUNT(*) AS total
+FROM (
+    SELECT DISTINCT pc.product_id
+    FROM product_categories pc
+    JOIN categories_closure cc ON cc.descendant_id = pc.category_id
+    JOIN products p ON p.product_id = pc.product_id
+    WHERE cc.ancestor_id = :categoryId
+      AND p.is_active = 1
+      AND p.base_price BETWEEN :minPrice AND :maxPrice
+      -- include attribute conditions here if required (but be careful with GROUP BY)
+) t;
+
+-- 6.
+SELECT p.product_id, p.product_name, p.sku, pi.image_url
+FROM products p
+LEFT JOIN product_images pi ON pi.product_id = p.product_id AND pi.is_primary = TRUE
+WHERE p.is_active = 1
+  AND MATCH(p.product_name, p.description) AGAINST (:q IN NATURAL LANGUAGE MODE)
+ORDER BY MATCH(p.product_name, p.description) AGAINST (:q) DESC
+LIMIT 20;
+
+--7.
+EXPLAIN FORMAT=JSON
+<your SELECT ...>;
+
 
 
 
