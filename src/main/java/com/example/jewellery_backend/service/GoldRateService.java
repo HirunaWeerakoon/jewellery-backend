@@ -1,6 +1,6 @@
 package com.example.jewellery_backend.service;
 
-import com.example.jewellery_backend.model.GoldRate;
+import com.example.jewellery_backend.entity.GoldRate;
 import com.example.jewellery_backend.repository.GoldRateRepository;
 import org.springframework.stereotype.Service;
 

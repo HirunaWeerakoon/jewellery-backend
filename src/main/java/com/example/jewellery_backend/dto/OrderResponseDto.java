@@ -1,6 +1,6 @@
 package com.example.jewellery_backend.dto;
 
-import com.example.jewellery_backend.entity.OrderStatus;
+import com.example.jewellery_backend.entity.OrderStatusType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ public class OrderResponseDto {
     private String customerName;
     private String customerEmail;
     private Double totalAmount;
-    private OrderStatus status;
+    private OrderStatusType status;
     private LocalDateTime createdAt;
 
     private List<OrderItemResponseDto> items; // must have getter/setter for Mapper

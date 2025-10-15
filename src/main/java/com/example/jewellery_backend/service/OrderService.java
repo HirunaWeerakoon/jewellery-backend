@@ -4,8 +4,8 @@ import com.example.jewellery_backend.dto.OrderItemRequestDto;
 import com.example.jewellery_backend.dto.OrderRequestDto;
 import com.example.jewellery_backend.entity.Order;
 import com.example.jewellery_backend.entity.OrderItem;
-import com.example.jewellery_backend.entity.OrderStatus;
-import com.example.jewellery_backend.model.Product;
+import com.example.jewellery_backend.entity.OrderStatusType;
+import com.example.jewellery_backend.entity.Product;
 import com.example.jewellery_backend.entity.Slip;
 import com.example.jewellery_backend.exception.InsufficientStockException;
 import com.example.jewellery_backend.exception.ResourceNotFoundException;
@@ -99,7 +99,7 @@ public class OrderService {
         }
 
         order.setTotalAmount(total);
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatusType.PENDING);
         order = orderRepository.save(order);
         return order;
     }
@@ -110,7 +110,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<Order> findByStatus(OrderStatus status) {
+    public List<Order> findByStatus(OrderStatusType status) {
         if (status == null) {
             return findAll();
         }
@@ -135,7 +135,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public Order updateOrderStatus(Long orderId, OrderStatusType newStatus) {
         Order order = getOrder(orderId);
         if (newStatus == null) {
             throw new IllegalArgumentException("New status cannot be null");
@@ -170,7 +170,7 @@ public class OrderService {
 
         Slip saved = slipRepository.save(slip);
         order.setSlip(saved);
-        order.setStatus(OrderStatus.SLIP_UPLOADED);
+        order.setStatus(OrderStatusType.SLIP_UPLOADED);
         orderRepository.save(order);
         return saved;
     }
@@ -192,14 +192,14 @@ public class OrderService {
         slipRepository.delete(existing);
 
         order.setSlip(null);
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatusType.PENDING);
         orderRepository.save(order);
     }
 
     @Transactional
     public Order cancelOrder(Long orderId) {
         Order order = getOrder(orderId);
-        if (order.getStatus() == OrderStatus.VERIFIED || order.getStatus() == OrderStatus.PAID) {
+        if (order.getStatus() == OrderStatusType.VERIFIED || order.getStatus() == OrderStatusType.PAID) {
             throw new IllegalArgumentException("Cannot cancel a verified/paid order");
         }
 
@@ -214,7 +214,7 @@ public class OrderService {
             }
         }
 
-        order.setStatus(OrderStatus.CANCELLED);
+        order.setStatus(OrderStatusType.CANCELLED);
         return orderRepository.save(order);
     }
 }
