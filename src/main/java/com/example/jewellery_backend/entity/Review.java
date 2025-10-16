@@ -10,6 +10,7 @@ import lombok.*;
  */
 @Entity
 @Table(name = "reviews")
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,6 +28,7 @@ public class Review {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @ToString.Exclude
     private Product product;
 
     @Column(name = "reviewer_name", nullable = false, length = 100)

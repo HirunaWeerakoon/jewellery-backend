@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "slips")
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,6 +27,7 @@ public class Slip {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @ToString.Exclude
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)

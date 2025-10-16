@@ -28,7 +28,8 @@ public class AttributeValue {
     @Column(name = "attribute_value", nullable = false, length = 255)
     private String attributeValue;
 
-    // Many-to-many relationship to Product via ProductAttributeValue
     @OneToMany(mappedBy = "attributeValue", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductAttributeValue> productAttributeLinks;
 }

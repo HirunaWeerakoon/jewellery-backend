@@ -12,10 +12,12 @@ import java.util.List;
  */
 @Entity
 @Table(name = "orders")
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @ToString(exclude = {"orderItems", "cartHeader"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Order {
@@ -27,7 +29,8 @@ public class Order {
     private Long orderId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
+    @JoinColumn(name = "cart_header_id", nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT))
     private CartHeader cartHeader;
 
     @Column(name = "user_name", nullable = false, length = 100)
@@ -77,9 +80,15 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Relationship to OrderItems
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Slip> slips = new ArrayList<>();
 
     // Lifecycle callbacks to handle timestamps
     @PrePersist
@@ -116,6 +125,20 @@ public class Order {
             for (OrderItem i : items) {
                 addOrderItem(i);
             }
+        }
+    }
+
+    public void addSlip(Slip slip) {
+        if (slip != null) {
+            slips.add(slip);
+            slip.setOrder(this);
+        }
+    }
+
+    public void removeSlip(Slip slip) {
+        if (slip != null) {
+            slips.remove(slip);
+            slip.setOrder(null);
         }
     }
 }

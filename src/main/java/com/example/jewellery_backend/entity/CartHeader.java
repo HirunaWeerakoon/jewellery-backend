@@ -2,7 +2,7 @@ package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-
+import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -34,4 +34,9 @@ public class CartHeader {
     @UpdateTimestamp
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "cartHeader", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<CartItem> items;
 }

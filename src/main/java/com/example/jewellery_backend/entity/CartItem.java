@@ -12,8 +12,7 @@ import lombok.*;
  * Entity representing items in a shopping cart.
  */
 @Entity
-@Table(
-        name = "cart_items",
+@Table(name = "cart_items",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"cart_header_id", "product_id"})}
 )
 @Data
