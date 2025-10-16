@@ -21,6 +21,7 @@ public class PaymentStatusType {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status_name", nullable = false, length = 20)
+    @Builder.Default
     private PaymentStatus paymentStatusName = PaymentStatus.pending;
 
     public enum PaymentStatus {

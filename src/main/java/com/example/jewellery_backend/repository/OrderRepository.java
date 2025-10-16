@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByStatus(OrderStatusType status);
+
+    List<Order> findByOrderStatus(OrderStatusType status);
     // Optional: use Pageable if you want paging:
     // Page<Order> findByStatus(OrderStatus status, Pageable pageable);
 }

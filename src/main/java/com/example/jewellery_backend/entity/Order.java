@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"orderItems", "cartHeader"})
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Order {
 
@@ -28,6 +28,7 @@ public class Order {
     @Column(name = "order_id")
     private Long orderId;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_header_id", nullable = false,
             foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT))
@@ -57,18 +58,22 @@ public class Order {
     private BigDecimal subtotal;
 
     @Column(name = "tax_amount", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal taxAmount = BigDecimal.ZERO;
 
     @Column(name = "shipping_amount", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal shippingAmount = BigDecimal.ZERO;
 
     @Column(name = "discount_amount", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
     @Column(name = "currency", length = 3)
+    @Builder.Default
     private String currency = "USD";
 
     @Column(name = "notes", columnDefinition = "TEXT")
@@ -82,12 +87,12 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    @EqualsAndHashCode.Exclude
+    @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    @EqualsAndHashCode.Exclude
+    @Builder.Default
     private List<Slip> slips = new ArrayList<>();
 
     // Lifecycle callbacks to handle timestamps

@@ -16,7 +16,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "product")
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Review {
 
@@ -44,9 +44,11 @@ public class Review {
     private String commentText;
 
     @Column(name = "review_date", nullable = false)
+    @Builder.Default
     private LocalDateTime reviewDate = LocalDateTime.now();
 
     @Column(name = "is_approved", nullable = false)
+    @Builder.Default
     private Boolean isApproved = false;
 
     // -------------------- Helper Methods --------------------

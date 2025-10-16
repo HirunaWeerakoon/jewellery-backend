@@ -103,16 +103,15 @@ public class OrderController {
      * curl example:
      * curl -F "file=@receipt.jpg" http://localhost:8080/orders/1/slip
      */
+
     @PostMapping("/{id}/slip")
     public ResponseEntity<?> uploadSlip(@PathVariable("id") Long id,
                                         @RequestPart("file") MultipartFile file) {
-        // orderService.uploadSlip(...) will store the file, persist Slip, and set OrderStatus.SLIP_UPLOADED
         Slip savedSlip = orderService.uploadSlip(id, file);
 
-        // return slip metadata in response for client convenience
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new Object() {
-                    public final Long slipId = savedSlip.getId();
+                    public final Long slipId = savedSlip.getSlipId();
                     public final String fileName = savedSlip.getFileName();
                     public final String filePath = savedSlip.getFilePath();
                     public final String fileType = savedSlip.getFileType();
@@ -130,7 +129,7 @@ public class OrderController {
         Slip slip = orderService.replaceSlip(id, file);
         return ResponseEntity.ok(
                 new Object() {
-                    public final Long slipId = slip.getId();
+                    public final Long slipId = slip.getSlipId();
                     public final String fileName = slip.getFileName();
                     public final String filePath = slip.getFilePath();
                     public final String fileType = slip.getFileType();

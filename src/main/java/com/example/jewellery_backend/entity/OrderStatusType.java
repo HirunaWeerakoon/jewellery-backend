@@ -21,10 +21,13 @@ public class OrderStatusType {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status_name", nullable = false, length = 20)
+    @Builder.Default
     private OrderStatus orderStatusName = OrderStatus.pending;
 
     public enum OrderStatus {
         pending,
+        verified,
+        paid,
         processing,
         shipped,
         delivered,

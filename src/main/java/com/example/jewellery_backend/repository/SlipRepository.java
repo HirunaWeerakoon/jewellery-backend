@@ -9,4 +9,7 @@ import java.util.Optional;
 public interface SlipRepository extends JpaRepository<Slip, Long> {
     Optional<Slip> findByOrderId(Long orderId);
     void deleteByOrderId(Long orderId);
+
+    Optional<Slip> findByOrderOrderId(Long orderId);
+
 }

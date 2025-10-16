@@ -17,15 +17,17 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())    // enable CORS (uses the bean below)
-                .csrf().disable()                   // DEV: disable CSRF for token/basic-auth APIs (see notes below)
+                .cors(Customizer.withDefaults())           // enable CORS
+                .csrf(csrf -> csrf.disable())             // disable CSRF
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .httpBasic(Customizer.withDefaults()); // simple dev auth; replace with JWT/UserDetails later
+                .httpBasic(Customizer.withDefaults());    // simple basic auth
+
         return http.build();
     }
+
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

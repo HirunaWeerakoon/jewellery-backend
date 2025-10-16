@@ -40,6 +40,7 @@ public class AdminUser {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
+    @Builder.Default
     private Role role = Role.staff;
 
     @Type(JsonType.class)
@@ -47,6 +48,7 @@ public class AdminUser {
     private Map<String, Boolean> permissions; // example: {"canEdit": true, "canDelete": false}
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "last_login")

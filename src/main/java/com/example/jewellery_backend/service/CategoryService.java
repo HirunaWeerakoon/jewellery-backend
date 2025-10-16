@@ -30,10 +30,14 @@ public class CategoryService {
 
     public Category updateCategory(Long id, Category updatedCategory) {
         return categoryRepository.findById(id).map(category -> {
-            category.setName(updatedCategory.getName());
+            category.setCategoryName(updatedCategory.getCategoryName());
+            category.setSlug(updatedCategory.getSlug());
+            category.setParent(updatedCategory.getParent());
+            category.setIsActive(updatedCategory.getIsActive());
             return categoryRepository.save(category);
         }).orElseThrow(() -> new RuntimeException("Category not found with ID " + id));
     }
+
 
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
