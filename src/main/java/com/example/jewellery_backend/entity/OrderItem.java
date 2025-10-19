@@ -21,7 +21,7 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"order", "product"})
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class OrderItem {
 

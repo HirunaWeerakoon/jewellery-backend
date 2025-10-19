@@ -39,6 +39,7 @@ public class CartItem {
     private Product product;
 
     @Column(name = "quantity", nullable = false)
+    @Builder.Default
     private Integer quantity = 1;
 
     @CreationTimestamp

@@ -10,6 +10,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class ProductCategoryId implements Serializable {
-    private Integer productId;
-    private Integer categoryId;
+    private Long productId;
+    private Long categoryId;
 }

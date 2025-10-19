@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,9 +17,10 @@ import java.util.List;
 public class OrderResponseDto {
     private Long id;
     private String customerName;
+    private String customerAddress;
     private String customerEmail;
-    private Double totalAmount;
-    private OrderStatusType status;
+    private BigDecimal totalAmount;
+    private OrderStatusType orderStatusType;
     private LocalDateTime createdAt;
 
     private List<OrderItemResponseDto> items; // must have getter/setter for Mapper

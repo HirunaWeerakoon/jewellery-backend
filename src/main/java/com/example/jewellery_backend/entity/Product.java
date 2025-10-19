@@ -35,9 +35,11 @@ public class Product {
     private String description;
 
     @Column(name = "base_price", precision = 10, scale = 2, nullable = false)
+    @Builder.Default
     private BigDecimal basePrice = BigDecimal.ZERO;
 
     @Column(name = "markup_percentage", precision = 5, scale = 2, nullable = false)
+    @Builder.Default
     private BigDecimal markupPercentage = BigDecimal.ZERO;
 
     @Column(name = "weight", precision = 8, scale = 3)
@@ -47,18 +49,23 @@ public class Product {
     private String dimensions;
 
     @Column(name = "stock_quantity", nullable = false)
+    @Builder.Default
     private Integer stockQuantity = 0;
 
     @Column(name = "min_stock_level")
+    @Builder.Default
     private Integer minStockLevel = 5;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "featured")
+    @Builder.Default
     private Boolean featured = false;
 
     @Column(name = "is_gold")
+    @Builder.Default
     private Boolean isGold = false;
 
     @Column(name = "gold_weight_grams", precision = 12, scale = 4)

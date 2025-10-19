@@ -1,9 +1,13 @@
 package com.example.jewellery_backend.controller;
 
+import com.example.jewellery_backend.dto.CategoryDto;
 import com.example.jewellery_backend.entity.Category;
 import com.example.jewellery_backend.service.CategoryService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -17,29 +21,28 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
-    }
-
-    @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable Long id) {
-        return categoryService.getCategoryById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found with ID " + id));
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+        List<CategoryDto> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
 
     @PostMapping
-    public Category createCategory(@RequestBody Category category) {
-        return categoryService.saveCategory(category);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoryDto> create(@RequestBody CategoryDto dto) {
+        CategoryDto created = categoryService.createCategory(dto);
+        return ResponseEntity.created(URI.create("/api/admin/categories/" + created.getCategoryId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
-        return categoryService.updateCategory(id, updatedCategory);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoryDto> update(@PathVariable Long id, @RequestBody CategoryDto dto) {
+        CategoryDto updated = categoryService.updateCategory(id, dto);
+        return ResponseEntity.ok(updated);
     }
-
     @DeleteMapping("/{id}")
-    public String deleteCategory(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return "Category with ID " + id + " deleted successfully.";
+        return ResponseEntity.noContent().build();
     }
 }

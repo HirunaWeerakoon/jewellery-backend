@@ -2,6 +2,7 @@ package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import lombok.*;
 
@@ -16,7 +17,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "product")
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Review {
 
@@ -44,10 +45,19 @@ public class Review {
     private String commentText;
 
     @Column(name = "review_date", nullable = false)
+    @Builder.Default
     private LocalDateTime reviewDate = LocalDateTime.now();
 
     @Column(name = "is_approved", nullable = false)
+    @Builder.Default
     private Boolean isApproved = false;
+
+    @PrePersist
+    public void prePersist() {
+        if (reviewDate == null) reviewDate = LocalDateTime.now();
+        rating = Optional.ofNullable(rating).orElse(1);
+
+    }
 
     // -------------------- Helper Methods --------------------
     public void approve() {

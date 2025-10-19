@@ -32,8 +32,10 @@ public class ProductImage {
     private String altText;
 
     @Column(name = "is_primary")
+    @Builder.Default
     private Boolean isPrimary = false;
 
     @Column(name = "sort_order")
+    @Builder.Default
     private Integer sortOrder = 0;
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"order", "paymentStatus"})
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Slip {
 
@@ -32,6 +32,7 @@ public class Slip {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_status_id", nullable = false)
+    @ToString.Exclude
     private PaymentStatusType paymentStatus;
 
     @Column(name = "file_name", nullable = false, length = 255)
@@ -53,9 +54,11 @@ public class Slip {
     private String notes;
 
     @Column(name = "uploaded_at", nullable = false)
+    @Builder.Default
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
     @Column(name = "verified", nullable = false)
+    @Builder.Default
     private Boolean verified = false;
 
     @Column(name = "verified_at")

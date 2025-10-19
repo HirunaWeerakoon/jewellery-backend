@@ -499,51 +499,150 @@ DELIMITER ;
 
 
 
-INSERT INTO categories (category_name, category_slug, description) VALUES
-('Jewellery', 'jewellery', 'All jewellery'),
-('Rings', 'rings', 'All types of rings'),
-('Necklaces', 'necklaces', 'Necklaces, chains, and pendants'),
-('Earrings', 'earrings', 'Stud, hoops and drop earrings'),
-('Bracelets', 'bracelets', 'Tennis, bangles and charm bracelets'),
-('Engagement Rings', 'engagement-rings', 'Engagement rings (child of Rings)'),
-('Wedding Bands', 'wedding-bands', 'Wedding bands (child of Rings)'),
-('Fashion Rings', 'fashion-rings', 'Fashion rings (child of Rings)');
-
-
--- After inserting categories, populate closure table (self-relations)
-START TRANSACTION;
-INSERT INTO categories_closure (ancestor_id, descendant_id, depth)
-SELECT category_id, category_id, 0 FROM categories;
-
-INSERT INTO categories_closure (ancestor_id, descendant_id, depth)
-SELECT c.parent_category_id AS ancestor_id, c.category_id AS descendant_id, 1
-FROM categories c
-WHERE c.parent_category_id IS NOT NULL;
-
-INSERT INTO categories_closure (ancestor_id, descendant_id, depth)
-SELECT pc.ancestor_id, c.category_id, pc.depth + 1
-FROM categories_closure pc
-JOIN categories c ON c.parent_category_id = pc.descendant_id
-WHERE pc.ancestor_id <> c.category_id;
-COMMIT;
-
-
--- Example gold rate history (latest effective_date will be used in pricing)
+-- 1. Gold Rate History
 INSERT INTO gold_rate_history (rate, effective_date) VALUES
-(49.0000, '2025-01-01'),
-(50.5000, '2025-06-01');
+(85.2500, '2025-10-01'),
+(86.0000, '2025-10-05'),
+(87.5000, '2025-10-10');
 
 
--- Example products
--- product 2 is a gold product with 4 grams of 14K gold
-INSERT INTO products (product_name, sku, description, base_price, markup_percentage, weight, stock_quantity, is_gold, gold_weight_grams, gold_purity_karat) VALUES
-('Classic Diamond Engagement Ring', 'ENG001', 'Beautiful solitaire diamond engagement ring', 500.00, 150.00, 3.5, 5, FALSE, 0.0000, NULL),
-('Gold Wedding Band', 'WED001', 'Simple 14K gold wedding band', 200.00, 100.00, 4.2, 10, TRUE, 4.0000, 14),
-('Diamond Stud Earrings', 'EAR001', 'Classic diamond stud earrings', 800.00, 120.00, 2.1, 8, FALSE, 0.0000, NULL);
+-- 2. Categories
+INSERT INTO categories (category_name, category_slug, parent_category_id, is_active) VALUES
+('Jewelry', 'jewelry', NULL, TRUE),
+('Rings', 'rings', 1, TRUE),
+('Necklaces', 'necklaces', 1, TRUE),
+('Earrings', 'earrings', 1, TRUE),
+('Gold Rings', 'gold-rings', 2, TRUE),
+('Silver Rings', 'silver-rings', 2, TRUE);
 
 
--- Map products to categories (example)
--- INSERT INTO product_categories (product_id, category_id) VALUES (1, <engagement_rings_id>), (2, <wedding_bands_id>), (3, <earrings_id>);
+-- 3. Categories Closure
+INSERT INTO categories_closure (ancestor_id, descendant_id, depth) VALUES
+(1, 1, 0),
+(1, 2, 1),
+(1, 3, 1),
+(1, 4, 1),
+(2, 2, 0),
+(2, 5, 1),
+(2, 6, 1),
+(5, 5, 0),
+(6, 6, 0);
 
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- 4. Products
+INSERT INTO products (product_name, sku, description, base_price, markup_percentage, weight, dimensions, stock_quantity, is_active, featured, is_gold, gold_weight_grams, gold_purity_karat)
+VALUES
+('Elegant Gold Ring', 'GR001', '18K gold ring with embedded diamonds.', 350.00, 15.00, 12.500, '2x2x1 cm', 20, TRUE, TRUE, TRUE, 12.5, 18),
+('Silver Pearl Necklace', 'SN002', 'Sterling silver chain with freshwater pearls.', 200.00, 20.00, 25.000, '20x2x1 cm', 15, TRUE, TRUE, FALSE, 0.0000, NULL),
+('Diamond Earrings', 'DE003', 'Pair of diamond stud earrings in 14K gold.', 450.00, 18.00, 8.000, '1x1x1 cm', 10, TRUE, FALSE, TRUE, 8.0, 14),
+('Plain Silver Ring', 'SR004', 'Classic 925 sterling silver band.', 50.00, 10.00, 6.000, '2x2x1 cm', 30, TRUE, FALSE, FALSE, 0.0000, NULL);
+
+
+-- 5. Product-Categories Junction
+INSERT INTO product_categories (product_id, category_id) VALUES
+(1, 5),
+(2, 3),
+(3, 4),
+(4, 6);
+
+
+-- 6. Product Images
+INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
+(1, 'images/products/gold_ring_1.jpg', 'Elegant Gold Ring', TRUE, 1),
+(1, 'images/products/gold_ring_2.jpg', 'Gold Ring Side View', FALSE, 2),
+(2, 'images/products/silver_necklace.jpg', 'Silver Pearl Necklace', TRUE, 1),
+(3, 'images/products/diamond_earrings.jpg', 'Diamond Earrings', TRUE, 1),
+(4, 'images/products/silver_ring.jpg', 'Plain Silver Ring', TRUE, 1);
+
+
+-- 7. Attributes
+INSERT INTO attributes (attribute_name) VALUES
+('Material'),
+('Color'),
+('Size'),
+('Style');
+
+
+-- 8. Attribute Values
+INSERT INTO attribute_values (attribute_id, attribute_value) VALUES
+(1, 'Gold'),
+(1, 'Silver'),
+(2, 'Yellow'),
+(2, 'White'),
+(3, 'Small'),
+(3, 'Medium'),
+(3, 'Large'),
+(4, 'Classic'),
+(4, 'Modern');
+
+
+-- 9. Product-Attribute Values
+INSERT INTO product_attribute_values (product_id, value_id) VALUES
+(1, 1),
+(1, 3),
+(1, 8),
+(2, 2),
+(2, 9),
+(3, 1),
+(3, 4),
+(4, 2);
+
+
+-- 10. Admin Users
+INSERT INTO admin_users (username, email, password_hash, full_name, role, permissions)
+VALUES
+('superadmin', 'admin@example.com', 'hashed_password_123', 'Main Administrator', 'super_admin', '{"manage_users": true, "edit_products": true, "view_orders": true}'),
+('jewelry_mgr', 'manager@example.com', 'hashed_password_456', 'Store Manager', 'manager', '{"edit_products": true, "view_orders": true}');
+
+
+-- 11. Cart Header
+INSERT INTO cart_header (session_id) VALUES
+('session_abc123'),
+('session_def456');
+
+
+-- 12. Cart Items
+INSERT INTO cart_items (cart_header_id, product_id, quantity) VALUES
+(1, 1, 1),
+(1, 3, 2),
+(2, 4, 1);
+
+
+-- 13. Order Status Types
+INSERT INTO order_status_types (order_status_name) VALUES
+('pending'), ('processing'), ('shipped'), ('delivered'), ('cancelled'), ('refunded');
+
+
+-- 14. Payment Status Types
+INSERT INTO payment_status_types (payment_status_name) VALUES
+('pending'), ('failed'), ('verified'), ('refunded');
+
+
+-- 15. Orders
+INSERT INTO orders (cart_header_id, user_name, user_address, telephone_number, user_email, order_status_id, payment_status_id, subtotal, tax_amount, shipping_amount, discount_amount, total_amount, currency, notes)
+VALUES
+(1, 'John Doe', '123 Gold Street, Colombo', '+94770000000', 'john@example.com', 2, 3, 1000.00, 50.00, 20.00, 0.00, 1070.00, 'USD', 'Please deliver before 25th Oct.'),
+(2, 'Jane Smith', '456 Silver Ave, Kandy', '+94771234567', 'jane@example.com', 1, 1, 50.00, 5.00, 10.00, 0.00, 65.00, 'USD', NULL);
+
+
+-- 16. Order Items
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, material_rates_snapshot)
+VALUES
+(1, 1, 1, 350.00, 350.00, '{"gold_rate": 87.50, "purity": 18}'),
+(1, 3, 2, 450.00, 900.00, '{"gold_rate": 87.50, "purity": 14}'),
+(2, 4, 1, 50.00, 50.00, '{"material": "silver"}');
+
+
+-- 17. Slips
+INSERT INTO slips (order_id, file_name, file_path, file_type, file_size, checksum, notes, payment_status_id, verified)
+VALUES
+(1, 'payment_receipt_1.jpg', 'uploads/slips/payment_receipt_1.jpg', 'image/jpeg', 204800, 'abc123xyz', 'Payment verified successfully.', 3, TRUE),
+(2, 'payment_receipt_2.jpg', 'uploads/slips/payment_receipt_2.jpg', 'image/jpeg', 198000, 'def456uvw', 'Pending verification.', 1, FALSE);
+
+
+-- 18. Reviews
+INSERT INTO reviews (product_id, reviewer_name, reviewer_email, rating, comment_text, is_approved)
+VALUES
+(1, 'Alice', 'alice@example.com', 5, 'Beautiful craftsmanship and quality!', TRUE),
+(3, 'Bob', 'bob@example.com', 4, 'Looks elegant, but delivery took a bit long.', TRUE),
+(4, 'Catherine', 'cat@example.com', 5, 'Simple and classy silver ring.', TRUE);

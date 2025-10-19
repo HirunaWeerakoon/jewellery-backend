@@ -31,5 +31,7 @@ public class AttributeValue {
     @OneToMany(mappedBy = "attributeValue", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<ProductAttributeValue> productAttributeLinks;
+    @Builder.Default
+    private List<ProductAttributeValue> productAttributeLinks = new ArrayList<>();
+
 }

@@ -1,33 +1,29 @@
 package com.example.jewellery_backend;
 
 import java.math.BigDecimal;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CartItem {
+    private String itemKey; // e.g. "productId:attributeValueId"
     private Long productId;
-    private String name;
+    private Long attributeValueId; // nullable
+    private String productName;
     private BigDecimal unitPrice;
-    private int quantity;
+    private BigDecimal totalPrice;
+    private Integer quantity;
 
-    public CartItem() {}
+    // product image fields
+    private String imageUrl;
+    private String imageAlt;
 
-    public CartItem(Long productId, String name, BigDecimal unitPrice, int quantity) {
-        this.productId = productId;
-        this.name = name;
-        this.unitPrice = unitPrice;
-        this.quantity = quantity;
-    }
-
-    public Long getProductId() { return productId; }
-    public String getName() { return name; }
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public int getQuantity() { return quantity; }
-
-    public void setProductId(Long productId) { this.productId = productId; }
-    public void setName(String name) { this.name = name; }
-    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
-
-    public BigDecimal getLineTotal() {
-        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    public void recalcTotal() {
+        if (unitPrice != null && quantity != null) {
+            this.totalPrice = unitPrice.multiply(new BigDecimal(quantity));
+        }
     }
 }

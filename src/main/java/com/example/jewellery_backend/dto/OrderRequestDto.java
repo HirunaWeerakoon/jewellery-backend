@@ -1,35 +1,42 @@
 package com.example.jewellery_backend.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderRequestDto {
-    @NotNull
+    // getters + setters
+    @NotBlank(message = "Name is required")
     private String customerName;
 
-    @NotNull
-    @Email
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email is invalid")
     private String customerEmail;
+
+    @NotBlank(message = "Address is required")
+    @Size(max = 512)
+    private String customerAddress;
+
+    @NotBlank(message = "Telephone Number is required")
+    // simple telephone regex; adjust to your locale if needed
+    @Pattern(regexp = "^[0-9+\\-() ]{6,25}$", message = "Telephone looks invalid")
+    private String telephoneNumber;
 
     // totalAmount may be validated/calculated server-side too (we will calculate from items)
     private Double totalAmount;
 
-    @NotNull
     private List<OrderItemRequestDto> items;
-
-    // optional - if you add more payment methods later make an enum
-    private String paymentMethod = "BANK_TRANSFER";
-
-    // getters + setters
-    public String getCustomerName() { return customerName; }
-    public void setCustomerName(String customerName) { this.customerName = customerName; }
-    public String getCustomerEmail() { return customerEmail; }
-    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
-    public Double getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
-    public List<OrderItemRequestDto> getItems() { return items; }
-    public void setItems(List<OrderItemRequestDto> items) { this.items = items; }
-    public String getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 }

@@ -1,34 +1,62 @@
 package com.example.jewellery_backend;
 
+import lombok.*;
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Cart {
-    private final Map<Long, CartItem> items = new LinkedHashMap<>();
+    public static final String SESSION_ATTRIBUTE = "CART";
 
-    public Map<Long, CartItem> getItems() { return items; }
+    @Builder.Default
+    private Map<String, CartItem> items = new LinkedHashMap<>();
 
     public void addItem(CartItem item) {
-        items.merge(item.getProductId(), item, (oldV, newV) -> {
-            oldV.setQuantity(oldV.getQuantity() + newV.getQuantity());
-            return oldV;
-        });
+        CartItem existing = items.get(item.getItemKey());
+        if (existing == null) {
+            item.recalcTotal();
+            items.put(item.getItemKey(), item);
+        } else {
+            existing.setQuantity(existing.getQuantity() + item.getQuantity());
+            existing.recalcTotal();
+        }
     }
 
-    public void updateQty(Long productId, int qty) {
-        if (qty <= 0) { items.remove(productId); return; }
-        CartItem it = items.get(productId);
-        if (it != null) it.setQuantity(qty);
+    public void updateQuantity(String itemKey, int quantity) {
+        CartItem it = items.get(itemKey);
+        if (it != null) {
+            it.setQuantity(quantity);
+            it.recalcTotal();
+            if (it.getQuantity() <= 0) items.remove(itemKey);
+        }
     }
 
-    public void remove(Long productId) { items.remove(productId); }
+    public void removeItem(String itemKey) {
+        items.remove(itemKey);
+    }
 
-    public BigDecimal subtotal() {
+    public List<CartItem> getItemList() {
+        return new ArrayList<>(items.values());
+    }
+
+    public BigDecimal getCartTotal() {
         return items.values().stream()
-                .map(CartItem::getLineTotal)
+                .map(CartItem::getTotalPrice)
+                .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public boolean isEmpty() { return items.isEmpty(); }
+    public int getTotalQuantity() {
+        return items.values().stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+    }
+
+    public void clear() {
+        items.clear();
+    }
 }
