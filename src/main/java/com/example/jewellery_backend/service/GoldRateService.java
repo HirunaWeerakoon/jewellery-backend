@@ -21,7 +21,7 @@ public class GoldRateService {
     }
 
     public Optional<GoldRate> getLatestGoldRate() {
-        return goldRateRepository.findTopByOrderByDateDesc();
+        return goldRateRepository.findTopByOrderByEffectiveDateDesc();
     }
 
     public GoldRate saveGoldRate(GoldRate goldRate) {

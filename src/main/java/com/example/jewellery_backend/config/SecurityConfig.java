@@ -1,7 +1,9 @@
 package com.example.jewellery_backend.config;
 
+import com.example.jewellery_backend.config.AdminUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,9 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.util.Arrays;
 
@@ -21,6 +20,13 @@ import java.util.Arrays;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    private final AdminUserDetailsService adminUserDetailsService;
+
+    public SecurityConfig(AdminUserDetailsService adminUserDetailsService) {
+        this.adminUserDetailsService = adminUserDetailsService;
+    }
+
+    // -------------------- Security Filter Chain --------------------
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -44,6 +50,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // -------------------- CORS Configuration --------------------
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -58,20 +65,15 @@ public class SecurityConfig {
         return source;
     }
 
-    // Keep only **one PasswordEncoder bean** in the project
+    // -------------------- Password Encoder --------------------
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // In-memory admin user
+    // -------------------- Authentication Manager --------------------
     @Bean
-    public InMemoryUserDetailsManager inMemoryUserDetailsManager(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManager.class);
     }
 }

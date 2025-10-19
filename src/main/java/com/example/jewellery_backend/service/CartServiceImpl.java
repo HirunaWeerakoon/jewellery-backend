@@ -110,7 +110,7 @@ public class CartServiceImpl implements CartService {
         Optional<ProductImage> primary = Optional.empty();
         try {
             // Try repository method by productId and isPrimary
-            primary = productImageRepository.findFirstByProductIdAndIsPrimaryTrue(productId);
+            primary = productImageRepository.findFirstByProduct_ProductIdAndIsPrimaryTrue(productId);
         } catch (Exception ignore) {
             // Some projects need findFirstByProduct_IdAndIsPrimaryTrue depending on naming
             try {
@@ -120,7 +120,7 @@ public class CartServiceImpl implements CartService {
 
         if (primary.isEmpty()) {
             // fallback to first by sort order
-            var list = productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
+            var list = productImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
             if (!list.isEmpty()) primary = Optional.of(list.getFirst());
         }
 

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    @EntityGraph(attributePaths = {"categories"}) // optional: if your Product entity has categories mapped
+    @EntityGraph(attributePaths = {"productCategories", "productCategories.category"})
     List<Product> findAll();
 }
 

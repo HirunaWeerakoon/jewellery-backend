@@ -140,7 +140,7 @@ public class OrderService {
         String relativePath = fileStorageService.storeFile(file, subdir);
 
         // Remove previous slip
-        Slip existing = slipRepository.findByOrderOrderId(orderId).orElse(null);
+        Slip existing = slipRepository.findByOrder_OrderId(orderId).orElse(null);
         if (existing != null) {
             if (existing.getFilePath() != null) fileStorageService.delete(existing.getFilePath());
             slipRepository.delete(existing);
@@ -171,7 +171,7 @@ public class OrderService {
     @Transactional
     public void deleteSlip(Long orderId) {
         Order order = getOrder(orderId);
-        Slip existing = slipRepository.findByOrderOrderId(orderId)
+        Slip existing = slipRepository.findByOrder_OrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Slip not found for order id: " + orderId));
         if (existing.getFilePath() != null) fileStorageService.delete(existing.getFilePath());
         slipRepository.delete(existing);
@@ -182,7 +182,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Slip getSlip(Long orderId) {
-        return slipRepository.findByOrderOrderId(orderId)
+        return slipRepository.findByOrder_OrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Slip not found for order id: " + orderId));
     }
 

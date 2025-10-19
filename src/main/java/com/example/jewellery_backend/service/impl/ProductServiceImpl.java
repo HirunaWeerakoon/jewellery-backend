@@ -78,8 +78,8 @@ public class ProductServiceImpl implements ProductService {
 
                 ProductCategory pc = ProductCategory.builder()
                         .id(new ProductCategoryId(
-                                p.getProductId() != null ? p.getProductId().intValue() : null,
-                                c.getCategoryId() != null ? c.getCategoryId().intValue() : null
+                                p.getProductId(),
+                                c.getCategoryId()
                         ))
                         .product(p)
                         .category(c)
@@ -167,7 +167,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDto> getProductsByCategoryId(Long categoryId) {
         // Query productCategoryRepository since Category does not have productCategories
-        List<ProductCategory> pcs = productCategoryRepository.findByCategoryId(categoryId);
+        List<ProductCategory> pcs = productCategoryRepository.findByIdCategoryId(categoryId);
 
         if (pcs != null && !pcs.isEmpty()) {
             return pcs.stream()

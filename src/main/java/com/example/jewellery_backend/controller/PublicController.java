@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/public")
 public class PublicController {
 
     private final CategoryService categoryService;
@@ -41,10 +41,5 @@ public class PublicController {
     public ResponseEntity<List<ProductDto>> getProductsByCategory(@PathVariable Long id) {
         List<ProductDto> products = productService.getProductsByCategoryId(id);
         return ResponseEntity.ok(products);
-    }
-
-    @GetMapping("/categories/{id}/products")
-    public ResponseEntity<List<ProductDto>> productsByCategory(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductsByCategoryId(id));
     }
 }

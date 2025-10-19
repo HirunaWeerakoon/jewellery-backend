@@ -25,5 +25,6 @@ public class Attribute {
     @OneToMany(mappedBy = "attribute", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<AttributeValue> values;
+    @Builder.Default
+    private List<AttributeValue> values = new ArrayList<>();
 }

@@ -52,7 +52,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public List<ReviewResponseDto> getPublicReviewsForProduct(Long productId) {
-        return reviewRepository.findByProduct_ProductIdAndIsApprovedTrueOrderByCreatedAtDesc(productId)
+        return reviewRepository.findByProduct_ProductIdAndIsApprovedTrueOrderByReviewDateDesc(productId)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -60,7 +60,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public List<ReviewResponseDto> getAllReviewsForProduct(Long productId) {
-        return reviewRepository.findByProduct_ProductIdOrderByCreatedAtDesc(productId)
+        return reviewRepository.findByProduct_ProductIdOrderByReviewDateDesc(productId)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
