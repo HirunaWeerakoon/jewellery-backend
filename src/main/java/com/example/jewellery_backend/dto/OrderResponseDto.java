@@ -17,9 +17,10 @@ import java.util.List;
 public class OrderResponseDto {
     private Long id;
     private String customerName;
+    private String customerAddress;
     private String customerEmail;
     private BigDecimal totalAmount;
-    private OrderStatusType status;
+    private OrderStatusType orderStatusType;
     private LocalDateTime createdAt;
 
     private List<OrderItemResponseDto> items; // must have getter/setter for Mapper

@@ -2,6 +2,7 @@ package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import lombok.*;
 
@@ -50,6 +51,13 @@ public class Review {
     @Column(name = "is_approved", nullable = false)
     @Builder.Default
     private Boolean isApproved = false;
+
+    @PrePersist
+    public void prePersist() {
+        if (reviewDate == null) reviewDate = LocalDateTime.now();
+        rating = Optional.ofNullable(rating).orElse(1);
+
+    }
 
     // -------------------- Helper Methods --------------------
     public void approve() {

@@ -28,6 +28,6 @@ public class PaymentStatusType {
         pending,
         failed,
         verified,
-        refunded
+        PaymentStatus, refunded
     }
 }

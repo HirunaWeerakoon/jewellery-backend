@@ -23,7 +23,7 @@ public class Mapper {
         orderResponseDto.setCustomerName(order.getUserName());
         orderResponseDto.setCustomerEmail(order.getUserEmail());
         orderResponseDto.setTotalAmount(order.getTotalAmount());
-        orderResponseDto.setStatus(order.getOrderStatus());
+        orderResponseDto.setOrderStatusType(order.getOrderStatus());
         orderResponseDto.setCreatedAt(order.getCreatedAt());
 
         // Convert OrderItems to OrderItemResponseDto
