@@ -33,7 +33,31 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // 👈 everything allowed
+                        // --- Allow Public Access FIRST ---
+                        .requestMatchers(
+                                "/", // Allow access to root for "API is running" message
+                                "/api/public/**", // Public products, categories
+                                "/api/products/filter", // Product filtering
+                                "/api/cart/**", // Cart operations
+                                "/products/{productId}/reviews", // Public reviews
+                                "/api/admin-users/login" // Allow admin login attempts
+                                // Add any other public endpoints here (e.g., /api/gold-rates/** ?)
+                        ).permitAll()
+
+                        // --- Secure Admin Endpoints ---
+                        .requestMatchers(
+                                "/admin/**", // Secure admin UI if  add one
+                                "/api/admin/**", // Secure admin API
+                                "/api/categories/**", // Only ADMIN can POST/PUT/DELETE categories
+                                "/orders/**" // Only ADMIN should manage orders/slips via these top-level paths
+                        ).hasRole("ADMIN") // Requires ROLE_ADMIN
+
+                        // --- Secure Any Other /api Endpoints ---
+                        //  catches things like maybe a future /api/user/profile endpoint
+                        .requestMatchers("/api/**").authenticated()
+
+                        // --- Allow All Other Requests (e.g., static files if served) ---
+                        .anyRequest().permitAll()
                 )
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable())

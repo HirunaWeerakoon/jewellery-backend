@@ -1,12 +1,13 @@
 package com.example.jewellery_backend.dto;
 
-import com.example.jewellery_backend.entity.Product;
+// Remove the unused import for Product
+// import com.example.jewellery_backend.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
+import java.math.BigDecimal; // Import BigDecimal
 
 @Getter
 @Setter
@@ -14,19 +15,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class OrderItemResponseDto {
     private Long id;
-    private Long productId;
-    private String productName; // optional, can be null if not set
-    private Double unitPrice;
+    private Long productId; // Use Long for ID
+    private String productName;
+    private BigDecimal unitPrice; // Changed from Double
     private Integer quantity;
-    private Double subtotal;
+    private BigDecimal subtotal; // Changed from Double
 
-    public void setSubtotal(BigDecimal totalPrice) {
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-    }
-
-    public void setProductId(Product product) {
-
-    }
+    // Custom setters REMOVED. Lombok will generate correct ones.
 }

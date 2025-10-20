@@ -51,13 +51,21 @@ public class Mapper {
      */
     public static OrderItemResponseDto toItemResponse(OrderItem item) {
         OrderItemResponseDto dto = new OrderItemResponseDto();
-        dto.setId(item.getOrderItemId());
-        dto.setProductId(item.getProduct());
-        dto.setUnitPrice(item.getUnitPrice());
-        dto.setQuantity(item.getQuantity());
-        dto.setSubtotal(item.getTotalPrice());
+        dto.setId(item.getOrderItemId()); // Use the correct getter
 
-        // Optional: productName can be set later if needed
+        // Correctly set productId and productName from the associated Product
+        if (item.getProduct() != null) {
+            dto.setProductId(item.getProduct().getProductId()); // Get Long ID
+            dto.setProductName(item.getProduct().getProductName()); // Get Name
+        } else {
+            dto.setProductId(null);
+            dto.setProductName("Product Not Found"); // Handle case where product might be missing
+        }
+
+        dto.setUnitPrice(item.getUnitPrice()); // Already BigDecimal
+        dto.setQuantity(item.getQuantity());
+        dto.setSubtotal(item.getTotalPrice()); // Already BigDecimal
+
         return dto;
     }
 }
