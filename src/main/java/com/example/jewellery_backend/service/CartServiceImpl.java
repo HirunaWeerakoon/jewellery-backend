@@ -121,7 +121,7 @@ public class CartServiceImpl implements CartService {
         if (primary.isEmpty()) {
             // fallback to first by sort order
             var list = productImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
-            if (!list.isEmpty()) primary = Optional.of(list.getFirst());
+            if (!list.isEmpty()) primary = Optional.of(list.get(0));
         }
 
         primary.ifPresent(img -> {
@@ -135,7 +135,7 @@ public class CartServiceImpl implements CartService {
         try {
             return product.getProductName();
         } catch (Exception e) {
-            return STR."Product-\{product.getProductId()}";
+            return "Product-" + product.getProductId();
         }
     }
 

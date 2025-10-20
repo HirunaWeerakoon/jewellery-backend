@@ -33,22 +33,15 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // 👈 everything allowed
                 )
-                .formLogin(form -> form
-                        .loginPage("/login").permitAll()
-                        .defaultSuccessUrl("/", true)
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/").permitAll()
-                )
-                .httpBasic(Customizer.withDefaults());
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable())
+                .httpBasic(basic -> basic.disable());
 
         return http.build();
     }
+
 
     // -------------------- CORS Configuration --------------------
     @Bean
