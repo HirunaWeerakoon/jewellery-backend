@@ -1,50 +1,76 @@
 package com.example.jewellery_backend.controller.admin;
-import com.example.jewellery_backend.model.Product;
-import com.example.jewellery_backend.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.example.jewellery_backend.dto.CreateUpdateProductRequest;
+import com.example.jewellery_backend.dto.ProductDto;
+import com.example.jewellery_backend.entity.Product;
+import com.example.jewellery_backend.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin/products")
+@RequiredArgsConstructor
 public class AdminProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
-    // Constructor injection is preferred for clarity
-    @Autowired
-    public AdminProductController(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+    // ------------------ Product Endpoints ------------------
 
-    // Get all products
+    /**
+     * List all products
+     */
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProductDto>> list() {
+        List<ProductDto> products = productService.getAllProducts();
+        return ResponseEntity.ok(products);
     }
 
-    // Add a new product
+    /**
+     * Get product by ID
+     */
+    @GetMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDto> getProductById(@PathVariable Long productId) {
+        ProductDto product = productService.getProductById(productId);
+        return ResponseEntity.ok(product);
+    }
+
+    /**
+     * Create a new product
+     */
     @PostMapping
-    public Product addProduct(@RequestBody Product product) {
-        return productRepository.save(product);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDto> create(@RequestBody CreateUpdateProductRequest req) {
+        ProductDto created = productService.createProduct(req);
+        return ResponseEntity
+                .created(URI.create("/admin/products/" + created.getProductId()))
+                .body(created);
     }
 
-    // Update a product
-    @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-        Product product = productRepository.findById(id).orElseThrow();
-        product.setName(productDetails.getName());
-        product.setDescription(productDetails.getDescription());
-        product.setPrice(productDetails.getPrice());
-        product.setImageUrl(productDetails.getImageUrl());
-        product.setStock(productDetails.getStock());
-        return productRepository.save(product);
+    /**
+     * Update an existing product
+     */
+    @PutMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDto> update(@PathVariable Long productId,
+                                             @RequestBody CreateUpdateProductRequest req) {
+        ProductDto updated = productService.updateProduct(productId, req);
+        return ResponseEntity.ok(updated);
     }
 
-    // Delete a product
-    @DeleteMapping("/{id}")
-    public void deleteProduct(@PathVariable Long id) {
-        productRepository.deleteById(id);
+    /**
+     * Delete a product
+     */
+    @DeleteMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
     }
 }

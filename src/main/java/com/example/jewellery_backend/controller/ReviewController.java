@@ -1,31 +1,38 @@
 package com.example.jewellery_backend.controller;
 
-import com.example.jewellery_backend.entity.Review;
+
+import com.example.jewellery_backend.dto.ReviewRequestDto;
+import com.example.jewellery_backend.dto.ReviewResponseDto;
 import com.example.jewellery_backend.service.ReviewService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
+
 @RestController
-@RequestMapping("/reviews")
+@RequiredArgsConstructor
+@RequestMapping("/products/{productId}/reviews")
 public class ReviewController {
 
-    @Autowired
-    private ReviewService reviewService;
+
+    private final ReviewService reviewService;
+
 
     @PostMapping
-    public Review addReview(@RequestBody Review review) {
-        return reviewService.addReview(review);
+    public ResponseEntity<ReviewResponseDto> addReview(@PathVariable Long productId,
+                                                       @Valid @RequestBody ReviewRequestDto request) {
+        ReviewResponseDto saved = reviewService.addReview(productId, request);
+        return ResponseEntity.ok(saved);
     }
 
-    @GetMapping("/product/{productId}")
-    public List<Review> getReviews(@PathVariable Long productId) {
-        return reviewService.getReviewsForProduct(productId);
-    }
+
+    // Public: only approved reviews
     @GetMapping
-    public List<Review> getAllReviews() {
-        return reviewService.getAllReviews();
+    public ResponseEntity<List<ReviewResponseDto>> getApprovedReviews(@PathVariable Long productId) {
+        return ResponseEntity.ok(reviewService.getPublicReviewsForProduct(productId));
     }
-
 }

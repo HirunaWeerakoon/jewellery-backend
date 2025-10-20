@@ -1,52 +1,101 @@
-
 package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity representing an order.
+ */
 @Entity
 @Table(name = "orders")
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = "orderItems") // avoids lazy loading issues
+@Builder
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private Long id;
+    @Column(name = "order_id")
+    private Long orderId;
 
-    @Column(name="customer_name", nullable = false)
-    private String customerName;
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_header_id", nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT))
+    private CartHeader cartHeader;
 
-    @Column(name="customer_email", nullable = false)
-    private String customerEmail;
+    @Column(name = "user_name", nullable = false, length = 100)
+    private String userName;
 
-    @Column(name="total_amount", nullable = false)
-    private Double totalAmount = 0.0;
+    @Column(name = "user_address", nullable = false, length = 255)
+    private String userAddress;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name="status", nullable = false, length = 50)
-    private OrderStatus status = OrderStatus.PENDING;
+    @Column(name = "telephone_number", nullable = false, length = 20)
+    private String telephoneNumber;
 
-    @Column(name="created_at", nullable = false)
+    @Column(name = "user_email", nullable = false, length = 255)
+    private String userEmail;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_status_id", nullable = false)
+    private OrderStatusType orderStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_status_id", nullable = false)
+    private PaymentStatusType paymentStatus;
+
+    @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(name = "tax_amount", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal taxAmount = BigDecimal.ZERO;
+
+    @Column(name = "shipping_amount", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal shippingAmount = BigDecimal.ZERO;
+
+    @Column(name = "discount_amount", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalAmount;
+
+    @Column(name = "currency", length = 3)
+    @Builder.Default
+    private String currency = "USD";
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name="updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
-    private Slip slip;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @Builder.Default
+    private List<Slip> slips = new ArrayList<>();
 
+    // Lifecycle callbacks to handle timestamps
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -58,8 +107,7 @@ public class Order {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ---------------------- helper methods ----------------------
-
+    // ---------------------- Helper methods ----------------------
     public void addOrderItem(OrderItem item) {
         if (item != null) {
             orderItems.add(item);
@@ -75,7 +123,6 @@ public class Order {
     }
 
     public void setOrderItems(List<OrderItem> items) {
-        // unlink existing
         for (OrderItem oi : new ArrayList<>(this.orderItems)) {
             removeOrderItem(oi);
         }
@@ -86,15 +133,17 @@ public class Order {
         }
     }
 
-    public void setSlip(Slip slip) {
-        if (slip == null) {
-            if (this.slip != null) {
-                this.slip.setOrder(null);
-            }
-            this.slip = null;
-        } else {
+    public void addSlip(Slip slip) {
+        if (slip != null) {
+            slips.add(slip);
             slip.setOrder(this);
-            this.slip = slip;
+        }
+    }
+
+    public void removeSlip(Slip slip) {
+        if (slip != null) {
+            slips.remove(slip);
+            slip.setOrder(null);
         }
     }
 }

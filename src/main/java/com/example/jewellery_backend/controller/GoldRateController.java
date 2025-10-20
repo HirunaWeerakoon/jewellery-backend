@@ -1,6 +1,6 @@
 package com.example.jewellery_backend.controller;
 
-import com.example.jewellery_backend.model.GoldRate;
+import com.example.jewellery_backend.entity.GoldRate;
 import com.example.jewellery_backend.service.GoldRateService;
 import org.springframework.web.bind.annotation.*;
 

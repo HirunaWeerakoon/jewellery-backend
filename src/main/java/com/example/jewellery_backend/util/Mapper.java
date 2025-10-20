@@ -4,7 +4,9 @@ import com.example.jewellery_backend.dto.OrderItemResponseDto;
 import com.example.jewellery_backend.dto.OrderResponseDto;
 import com.example.jewellery_backend.entity.Order;
 import com.example.jewellery_backend.entity.OrderItem;
+import com.example.jewellery_backend.entity.Slip;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,11 +19,11 @@ public class Mapper {
         OrderResponseDto orderResponseDto = new OrderResponseDto();
 
         // FIXED: getId() not getID()
-        orderResponseDto.setId(order.getId());
-        orderResponseDto.setCustomerName(order.getCustomerName());
-        orderResponseDto.setCustomerEmail(order.getCustomerEmail());
+        orderResponseDto.setId(order.getOrderId());
+        orderResponseDto.setCustomerName(order.getUserName());
+        orderResponseDto.setCustomerEmail(order.getUserEmail());
         orderResponseDto.setTotalAmount(order.getTotalAmount());
-        orderResponseDto.setStatus(order.getStatus());
+        orderResponseDto.setOrderStatusType(order.getOrderStatus());
         orderResponseDto.setCreatedAt(order.getCreatedAt());
 
         // Convert OrderItems to OrderItemResponseDto
@@ -33,11 +35,13 @@ public class Mapper {
         // Set items in DTO
         orderResponseDto.setItems(items);
 
-        // Set slip info if exists
-        if (order.getSlip() != null) {
-            orderResponseDto.setSlipFileName(order.getSlip().getFileName());
-            orderResponseDto.setSlipFilePath(order.getSlip().getFilePath());
+// Set slip info if exists (use first slip)
+        if (order.getSlips() != null && !order.getSlips().isEmpty()) {
+            Slip slip = order.getSlips().get(0);
+            orderResponseDto.setSlipFileName(slip.getFileName());
+            orderResponseDto.setSlipFilePath(slip.getFilePath());
         }
+
 
         return orderResponseDto;
     }
@@ -47,11 +51,11 @@ public class Mapper {
      */
     public static OrderItemResponseDto toItemResponse(OrderItem item) {
         OrderItemResponseDto dto = new OrderItemResponseDto();
-        dto.setId(item.getId());
-        dto.setProductId(item.getProductId());
+        dto.setId(item.getOrderItemId());
+        dto.setProductId(item.getProduct());
         dto.setUnitPrice(item.getUnitPrice());
         dto.setQuantity(item.getQuantity());
-        dto.setSubtotal(item.getSubtotal());
+        dto.setSubtotal(item.getTotalPrice());
 
         // Optional: productName can be set later if needed
         return dto;
