@@ -28,12 +28,6 @@ public class Order {
     @Column(name = "order_id")
     private Long orderId;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_header_id", nullable = false,
-            foreignKey = @ForeignKey(ConstraintMode.CONSTRAINT))
-    private CartHeader cartHeader;
-
     @Column(name = "user_name", nullable = false, length = 100)
     private String userName;
 

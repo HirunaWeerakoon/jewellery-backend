@@ -1,5 +1,6 @@
 package com.example.jewellery_backend.service;
-
+import com.example.jewellery_backend.repository.OrderStatusTypeRepository;
+import com.example.jewellery_backend.repository.PaymentStatusTypeRepository;
 import com.example.jewellery_backend.dto.OrderItemRequestDto;
 import com.example.jewellery_backend.dto.OrderRequestDto;
 import com.example.jewellery_backend.entity.*;
@@ -9,12 +10,19 @@ import com.example.jewellery_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import lombok.RequiredArgsConstructor;
+import com.example.jewellery_backend.Cart;
+import com.example.jewellery_backend.CartItem;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.util.StringUtils;
+import java.util.Objects;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -25,108 +33,107 @@ public class OrderService {
     private final OrderStatusTypeRepository orderStatusTypeRepository;
     private final PaymentStatusTypeRepository paymentStatusTypeRepository;
 
-    public OrderService(OrderRepository orderRepository,
-                                OrderItemRepository orderItemRepository,
-                                ProductRepository productRepository,
-                                SlipRepository slipRepository,
-                                FileStorageService fileStorageService) {
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.productRepository = productRepository;
-        this.slipRepository = slipRepository;
-        this.fileStorageService = fileStorageService;
-    }
 
     // ---------------- Create Order (Admin or Checkout) ----------------
-
     @Transactional
-    public Order createOrder(OrderRequestDto orderRequestDto) {
-        if (orderRequestDto == null || orderRequestDto.getItems() == null || orderRequestDto.getItems().isEmpty()) {
-            throw new IllegalArgumentException("Order request must contain items");
+    public Order createOrderFromSessionCart(OrderRequestDto customerDetails, MultipartFile slipFile, HttpSession session) {
+        // 1. Get Cart from Session
+        Cart cart = (Cart) session.getAttribute(Cart.SESSION_ATTRIBUTE);
+        if (cart == null || cart.getItemList() == null || cart.getItemList().isEmpty()) {
+            throw new IllegalArgumentException("Cannot create order with an empty cart.");
+        }
+        if (slipFile == null || slipFile.isEmpty()) {
+            throw new IllegalArgumentException("Payment slip is required.");
         }
 
+        // 2. Create Order entity and set customer details
         Order order = new Order();
-        order.setUserName(orderRequestDto.getCustomerName());
-        order.setUserEmail(orderRequestDto.getCustomerEmail());
-        order.setUserAddress(orderRequestDto.getCustomerAddress());
-        order.setTelephoneNumber(orderRequestDto.getTelephoneNumber());
+        order.setUserName(customerDetails.getCustomerName());
+        order.setUserEmail(customerDetails.getCustomerEmail());
+        order.setUserAddress(customerDetails.getCustomerAddress());
+        order.setTelephoneNumber(customerDetails.getTelephoneNumber());
         order.setCreatedAt(LocalDateTime.now());
+        // Remove CartHeader link later if desired (Step 3 below)
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal subTotal = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
-        for (OrderItemRequestDto itemReq : orderRequestDto.getItems()) {
-            Product product = productRepository.findById(itemReq.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemReq.getProductId()));
+        // 3. Process Cart Items -> OrderItems (and update stock)
+        for (CartItem cartItem : cart.getItemList()) {
+            Product product = productRepository.findById(cartItem.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found in cart with id: " + cartItem.getProductId()));
 
-            int qty = itemReq.getQuantity();
-            if (qty <= 0) throw new IllegalArgumentException("Quantity must be >=1");
+            int qty = cartItem.getQuantity();
+            if (qty <= 0) continue; // Skip invalid items
 
-            if (product.getStockQuantity() < qty)
-                throw new InsufficientStockException("Insufficient stock for product id " + product.getProductId());
+            if (product.getStockQuantity() < qty) {
+                throw new InsufficientStockException("Insufficient stock for product id " + product.getProductId() + " (" + product.getProductName() + ")");
+            }
 
-            // decrement stock
+            // Decrement stock
             product.setStockQuantity(product.getStockQuantity() - qty);
             productRepository.save(product);
 
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
             orderItem.setQuantity(qty);
-            BigDecimal unitPrice = product.getBasePrice() != null ? product.getBasePrice() : BigDecimal.ZERO;
+            BigDecimal unitPrice = cartItem.getUnitPrice() != null ? cartItem.getUnitPrice() : BigDecimal.ZERO;
             orderItem.setUnitPrice(unitPrice);
             orderItem.setTotalPrice(unitPrice.multiply(BigDecimal.valueOf(qty)));
-            orderItem.setOrder(order);
+            // orderItem.setOrder(order); // Will be set after order is saved
 
             orderItems.add(orderItem);
-            totalAmount = totalAmount.add(orderItem.getTotalPrice());
+            subTotal = subTotal.add(orderItem.getTotalPrice());
         }
 
-        order.setTotalAmount(totalAmount);
-        order.setOrderItems(orderItems);
-        order.setOrderStatus(getDefaultOrderStatus());
-        order.setPaymentStatus(getDefaultPaymentStatus());
+        // 4. Set totals, FETCH default statuses, and save Order
+        order.setOrderItems(new ArrayList<>()); // Initialize collection
+        order.setSubtotal(subTotal);
+        order.setTaxAmount(BigDecimal.ZERO); // Example
+        order.setShippingAmount(BigDecimal.ZERO); // Example
+        order.setDiscountAmount(BigDecimal.ZERO); // Example
+        order.setTotalAmount(subTotal.add(order.getTaxAmount()).add(order.getShippingAmount()).subtract(order.getDiscountAmount()));
 
-        Order savedOrder = orderRepository.save(order);
+        // Fetch the 'pending' OrderStatusType from the database
+        OrderStatusType pendingOrderStatus = orderStatusTypeRepository.findByOrderStatusName(OrderStatusType.OrderStatus.pending)
+                .orElseThrow(() -> new IllegalStateException("Default 'pending' order status not found in database!"));
+        order.setOrderStatus(pendingOrderStatus); // Assign the fetched entity
 
-        // Save order items
+        // Fetch the 'pending' PaymentStatusType from the database
+        PaymentStatusType pendingPaymentStatus = paymentStatusTypeRepository.findByPaymentStatusName(PaymentStatusType.PaymentStatus.pending)
+                .orElseThrow(() -> new IllegalStateException("Default 'pending' payment status not found in database!"));
+        order.setPaymentStatus(pendingPaymentStatus); // Assign the fetched entity
+
+        Order savedOrder = orderRepository.save(order); // Save Order first
+
+        // 5. Link and save OrderItems
         for (OrderItem item : orderItems) {
             item.setOrder(savedOrder);
             orderItemRepository.save(item);
+            savedOrder.getOrderItems().add(item); // Add to managed list
         }
+
+        // 6. Store Slip file and create Slip entity
+        String subdir = "slips/order_" + savedOrder.getOrderId();
+        String relativePath = fileStorageService.storeFile(slipFile, subdir);
+
+        Slip slip = new Slip();
+        slip.setOrder(savedOrder);
+        slip.setFileName(StringUtils.cleanPath(Objects.requireNonNull(slipFile.getOriginalFilename())));
+        slip.setFilePath(relativePath);
+        slip.setFileType(slipFile.getContentType());
+        slip.setFileSize(slipFile.getSize());
+        slip.setUploadedAt(LocalDateTime.now());
+        slip.setPaymentStatus(pendingPaymentStatus); // Assign the fetched pending status
+        slip.setVerified(false);
+
+        Slip savedSlip = slipRepository.save(slip);
+        savedOrder.getSlips().add(savedSlip); // Add to managed list
+
+        // 7. Clear the session cart
+        session.removeAttribute(Cart.SESSION_ATTRIBUTE);
 
         return savedOrder;
-    }
-
-    @Transactional
-    public Order createOrder(OrderRequestDto req, MultipartFile slipFile) {
-        if (req == null) throw new IllegalArgumentException("Checkout request cannot be null");
-
-        OrderRequestDto orderRequestDto = new OrderRequestDto();
-        orderRequestDto.setCustomerName(req.getCustomerName());
-        orderRequestDto.setCustomerEmail(req.getCustomerEmail());
-        orderRequestDto.setCustomerAddress(req.getCustomerAddress());
-        orderRequestDto.setTelephoneNumber(req.getTelephoneNumber());
-
-        List<OrderItemRequestDto> items = new ArrayList<>();
-        if (req.getItems() != null) {
-            for (OrderItemRequestDto dto : req.getItems()) {
-                OrderItemRequestDto item = new OrderItemRequestDto();
-                item.setProductId(dto.getProductId());
-                item.setQuantity(dto.getQuantity() != null ? dto.getQuantity() : 1);
-                item.setUnitPrice(dto.getUnitPrice());
-                items.add(item);
-            }
-        }
-        orderRequestDto.setItems(items);
-
-        Order order = createOrder(orderRequestDto);
-
-        // Handle slip upload
-        if (slipFile != null && !slipFile.isEmpty()) {
-            uploadSlip(order.getOrderId(), slipFile);
-        }
-
-        return order;
     }
 
 
@@ -156,7 +163,10 @@ public class OrderService {
         Slip savedSlip = slipRepository.save(slip);
 
         order.addSlip(savedSlip);
-        order.setOrderStatus(getSlipUploadedStatus());
+        // Fetch the 'processing' OrderStatusType from the database
+        OrderStatusType processingOrderStatus = orderStatusTypeRepository.findByOrderStatusName(OrderStatusType.OrderStatus.processing)
+                .orElseThrow(() -> new IllegalStateException("'processing' order status not found in database!"));
+        order.setOrderStatus(processingOrderStatus); // Assign the fetched entity
         orderRepository.save(order);
 
         return savedSlip;
@@ -175,7 +185,10 @@ public class OrderService {
         if (existing.getFilePath() != null) fileStorageService.delete(existing.getFilePath());
         slipRepository.delete(existing);
         order.removeSlip(existing);
-        order.setOrderStatus(getDefaultOrderStatus());
+        // Fetch the 'pending' OrderStatusType from the database
+        OrderStatusType pendingOrderStatus = orderStatusTypeRepository.findByOrderStatusName(OrderStatusType.OrderStatus.pending)
+                .orElseThrow(() -> new IllegalStateException("Default 'pending' order status not found in database!"));
+        order.setOrderStatus(pendingOrderStatus); // Assign the fetched entity
         orderRepository.save(order);
     }
 
@@ -276,28 +289,12 @@ public class OrderService {
             }
         }
 
-        order.setOrderStatus(getCancelledStatus());
+        // Fetch the 'cancelled' OrderStatusType from the database
+        OrderStatusType cancelledOrderStatus = orderStatusTypeRepository.findByOrderStatusName(OrderStatusType.OrderStatus.cancelled)
+                .orElseThrow(() -> new IllegalStateException("'cancelled' order status not found in database!"));
+        order.setOrderStatus(cancelledOrderStatus); // Assign the fetched entity
         return orderRepository.save(order);
     }
 
-    // ---------------- Helper methods ----------------
-
-    private OrderStatusType getDefaultOrderStatus() {
-        return new OrderStatusType(null, OrderStatusType.OrderStatus.pending);
-    }
-
-    private OrderStatusType getCancelledStatus() {
-        return new OrderStatusType(null, OrderStatusType.OrderStatus.cancelled);
-    }
-
-    private OrderStatusType getSlipUploadedStatus() {
-        return new OrderStatusType(null, OrderStatusType.OrderStatus.processing);
-    }
-
-    private PaymentStatusType getDefaultPaymentStatus() {
-        PaymentStatusType status = new PaymentStatusType();
-        status.setPaymentStatusName(PaymentStatusType.PaymentStatus.pending);
-        return status;
-    }
 
 }

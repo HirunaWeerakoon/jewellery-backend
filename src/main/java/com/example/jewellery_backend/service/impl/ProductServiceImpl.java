@@ -1,5 +1,7 @@
 package com.example.jewellery_backend.service.impl;
-
+import com.example.jewellery_backend.dto.ProductImageDto;
+import com.example.jewellery_backend.dto.ProductAttributeValueDto;
+import java.util.Collections;
 import com.example.jewellery_backend.dto.CreateUpdateProductRequest;
 import com.example.jewellery_backend.dto.ProductDto;
 import com.example.jewellery_backend.dto.ProductCategoryDto;
@@ -30,6 +32,11 @@ public class ProductServiceImpl implements ProductService {
     // ---------------- Mapping methods ----------------
 
     private ProductDto toDto(Product p) {
+        if (p == null) {
+            return null; // Handle null product input
+        }
+
+        // --- Map basic fields ---
         ProductDto dto = ProductDto.builder()
                 .productId(p.getProductId())
                 .productName(p.getProductName())
@@ -46,10 +53,12 @@ public class ProductServiceImpl implements ProductService {
                 .isGold(p.getIsGold())
                 .goldWeightGrams(p.getGoldWeightGrams())
                 .goldPurityKarat(p.getGoldPurityKarat())
-                .build();
+                .build(); // Initial build
 
+        // --- Map Categories ---
         if (p.getProductCategories() != null && !p.getProductCategories().isEmpty()) {
             List<ProductCategoryDto> categoryDtos = p.getProductCategories().stream()
+                    .filter(pc -> pc.getCategory() != null) // Avoid errors if category is null
                     .map(pc -> {
                         Category c = pc.getCategory();
                         return ProductCategoryDto.builder()
@@ -57,13 +66,45 @@ public class ProductServiceImpl implements ProductService {
                                 .categoryName(c.getCategoryName())
                                 .categorySlug(c.getSlug())
                                 .categoryIsActive(c.getIsActive())
+                                // Also add product info back-reference if needed in DTO
+                                .productId(p.getProductId()) // Link back to product
+                                .productName(p.getProductName())
                                 .build();
                     })
                     .collect(Collectors.toList());
             dto.setProductCategories(categoryDtos);
+        } else {
+            dto.setProductCategories(Collections.emptyList()); // Use empty list instead of null
         }
 
-        return dto;
+        // --- Map Images ---
+        if (p.getImages() != null && !p.getImages().isEmpty()) {
+            List<ProductImageDto> imageDtos = p.getImages().stream()
+                    .map(img -> ProductImageDto.builder() // Use the builder from ProductImageDto
+                            .imageId(img.getImageId())
+                            .imageUrl(img.getImageUrl())
+                            .altText(img.getAltText())
+                            .isPrimary(img.getIsPrimary())
+                            .sortOrder(img.getSortOrder())
+                            .build())
+                    .collect(Collectors.toList());
+            dto.setImages(imageDtos);
+        } else {
+            dto.setImages(Collections.emptyList()); // Use empty list instead of null
+        }
+
+        // --- Map Attribute Values ---
+        if (p.getAttributeValues() != null && !p.getAttributeValues().isEmpty()) {
+            List<ProductAttributeValueDto> attributeDtos = p.getAttributeValues().stream()
+                    // Use the static factory method from ProductAttributeValueDto
+                    .map(ProductAttributeValueDto::fromEntity)
+                    .collect(Collectors.toList());
+            dto.setAttributeValues(attributeDtos);
+        } else {
+            dto.setAttributeValues(Collections.emptyList()); // Use empty list instead of null
+        }
+
+        return dto; // Return the fully populated DTO
     }
 
     private void applyCategories(Product p, Set<Long> categoryIds) {
