@@ -5,10 +5,7 @@ import com.example.jewellery_backend.dto.OrderRequestDto;
 import com.example.jewellery_backend.entity.*;
 import com.example.jewellery_backend.exception.InsufficientStockException;
 import com.example.jewellery_backend.exception.ResourceNotFoundException;
-import com.example.jewellery_backend.repository.OrderItemRepository;
-import com.example.jewellery_backend.repository.OrderRepository;
-import com.example.jewellery_backend.repository.ProductRepository;
-import com.example.jewellery_backend.repository.SlipRepository;
+import com.example.jewellery_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +22,8 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final SlipRepository slipRepository;
     private final FileStorageService fileStorageService;
+    private final OrderStatusTypeRepository orderStatusTypeRepository;
+    private final PaymentStatusTypeRepository paymentStatusTypeRepository;
 
     public OrderService(OrderRepository orderRepository,
                                 OrderItemRepository orderItemRepository,
@@ -201,36 +200,60 @@ public class OrderService {
 
     @Transactional
     public Order updateStatuses(Long orderId, String orderStatusStr, String paymentStatusStr) {
-        Order order = getOrder(orderId);
+        Order order = getOrder(orderId); // Fetch the order
 
         // Update OrderStatus
         if (orderStatusStr != null && !orderStatusStr.isBlank()) {
             try {
-                OrderStatusType.OrderStatus osEnum = OrderStatusType.OrderStatus.valueOf(orderStatusStr);
+                // Convert string to the Enum type
+                OrderStatusType.OrderStatus osEnum = OrderStatusType.OrderStatus.valueOf(orderStatusStr.toLowerCase());
 
-                OrderStatusType statusType = new OrderStatusType();
-                statusType.setOrderStatusName(osEnum);
+                // Find the existing status entity in the database
+                OrderStatusType statusType = orderStatusTypeRepository.findByOrderStatusName(osEnum)
+                        .orElseThrow(() -> new IllegalArgumentException("Order status type not found in database: " + orderStatusStr));
 
-                order.setOrderStatus(statusType); // assuming your Order entity field is `orderStatus`
+                // Assign the fetched entity to the order
+                order.setOrderStatus(statusType);
+
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid order status: " + orderStatusStr);
+                // Handle invalid string input OR status not found in DB
+                throw new IllegalArgumentException("Invalid or unknown order status: " + orderStatusStr, e);
             }
         }
 
         // Update PaymentStatus
         if (paymentStatusStr != null && !paymentStatusStr.isBlank()) {
             try {
-                PaymentStatusType.PaymentStatus psEnum = PaymentStatusType.PaymentStatus.valueOf(paymentStatusStr);
+                // Convert string to the Enum type
+                PaymentStatusType.PaymentStatus psEnum = PaymentStatusType.PaymentStatus.valueOf(paymentStatusStr.toLowerCase());
 
-                PaymentStatusType paymentStatus = new PaymentStatusType();
-                paymentStatus.setPaymentStatusName(psEnum);
+                // Find the existing status entity in the database
+                PaymentStatusType paymentStatus = paymentStatusTypeRepository.findByPaymentStatusName(psEnum)
+                        .orElseThrow(() -> new IllegalArgumentException("Payment status type not found in database: " + paymentStatusStr));
 
-                order.setPaymentStatus(paymentStatus); // assuming your Order entity field is `paymentStatus`
+                // Assign the fetched entity to the order
+                order.setPaymentStatus(paymentStatus);
+
+                // --- Optional: Update Slip status when Payment Status changes ---
+                // If payment is verified, also mark the associated slip as verified
+                if (psEnum == PaymentStatusType.PaymentStatus.verified && order.getSlips() != null && !order.getSlips().isEmpty()) {
+                    Slip slip = order.getSlips().get(0); // Assuming one slip per order for now
+                    if (!slip.getVerified()) { // Check if not already verified
+                        slip.setPaymentStatus(paymentStatus); // Update slip's status link
+                        slip.markAsVerified(); // Set verified flag and timestamp
+                        slipRepository.save(slip); // Save the updated slip
+                    }
+                }
+                // Add similar logic for 'refunded' or 'failed' if needed
+                // --- End Optional Slip Update ---
+
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid payment status: " + paymentStatusStr);
+                // Handle invalid string input OR status not found in DB
+                throw new IllegalArgumentException("Invalid or unknown payment status: " + paymentStatusStr, e);
             }
         }
 
+        // Save the updated order with the correct status references
         return orderRepository.save(order);
     }
 

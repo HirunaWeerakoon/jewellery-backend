@@ -496,7 +496,13 @@ DELIMITER ;
 -- ========================================
 -- SAMPLE DATA (categories + example products)
 -- ========================================
+-- Populate Order Status Types
+INSERT INTO order_status_types (order_status_name) VALUES
+('pending'), ('processing'), ('shipped'), ('delivered'), ('cancelled'), ('refunded'), ('verified'), ('paid'); -- Added missing statuses used in code
 
+-- Populate Payment Status Types
+INSERT INTO payment_status_types (payment_status_name) VALUES
+('pending'), ('failed'), ('verified'), ('refunded'); -- Removed duplicate PaymentStatus
 
 
 -- 1. Gold Rate History

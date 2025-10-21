@@ -12,6 +12,7 @@ import com.example.jewellery_backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.jewellery_backend.repository.CategoryClosureRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductCategoryRepository productCategoryRepository;
+    private final CategoryClosureRepository categoryClosureRepository;
 
     // ---------------- Mapping methods ----------------
 
@@ -166,16 +168,38 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDto> getProductsByCategoryId(Long categoryId) {
-        // Query productCategoryRepository since Category does not have productCategories
-        List<ProductCategory> pcs = productCategoryRepository.findByIdCategoryId(categoryId);
+        // 1. Find all descendant category IDs (including the category itself)
+        Set<Long> categoryIdsToSearch = categoryClosureRepository.findDescendantIdsByAncestorId(categoryId);
 
-        if (pcs != null && !pcs.isEmpty()) {
-            return pcs.stream()
-                    .map(ProductCategory::getProduct)
-                    .map(this::toDto)
-                    .collect(Collectors.toList());
+        if (categoryIdsToSearch == null || categoryIdsToSearch.isEmpty()) {
+            return Collections.emptyList(); // No descendants found (or category doesn't exist)
         }
 
-        return Collections.emptyList();
+        // 2. Find all product-category links for these IDs
+        // Note: This requires a custom query or fetching all and filtering in memory.
+        // Let's create a more efficient query. Add this method to ProductCategoryRepository:
+        // List<ProductCategory> findByIdCategoryIdIn(Set<Long> categoryIds);
+        // --- TEMPORARY IN-MEMORY FILTER (Less efficient for many products) ---
+        List<ProductCategory> allProductCategories = productCategoryRepository.findAll(); // Less efficient
+        List<ProductCategory> relevantProductCategories = allProductCategories.stream()
+                .filter(pc -> categoryIdsToSearch.contains(pc.getCategory().getCategoryId()))
+                .toList();
+        // --- END TEMPORARY ---
+
+        // If you add findByIdCategoryIdIn to ProductCategoryRepository, use this instead:
+        // List<ProductCategory> relevantProductCategories = productCategoryRepository.findByIdCategoryIdIn(categoryIdsToSearch);
+
+
+        if (relevantProductCategories.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 3. Extract distinct products and map to DTOs
+        return relevantProductCategories.stream()
+                .map(ProductCategory::getProduct)
+                .filter(Objects::nonNull) // Ensure product is not null
+                .distinct() // Avoid duplicate products if linked to multiple relevant categories
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }
