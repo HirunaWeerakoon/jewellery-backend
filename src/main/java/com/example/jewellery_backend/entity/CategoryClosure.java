@@ -29,10 +29,8 @@ public class CategoryClosure {
     @JoinColumn(name = "descendant_id", nullable = false)
     private Category descendant;
 
-    /**
-     * Distance from ancestor to descendant.
-     * 0 indicates the node paired with itself; >0 for proper ancestors.
-     */
+    //Distance from ancestor to descendant. // 0 indicates the node paired with itself; >0 for proper ancestors.
+    
     @Column(name = "depth", nullable = false)
     private Integer depth;
 
@@ -40,10 +38,10 @@ public class CategoryClosure {
     public static CategoryClosure of(Category ancestor, Category descendant, Integer depth) {
         CategoryClosureId id = new CategoryClosureId(ancestor.getCategoryId(), descendant.getCategoryId());
         return CategoryClosure.builder()
-                .id(id)
+         .id(id)
                 .ancestor(ancestor)
                 .descendant(descendant)
                 .depth(depth)
-                .build();
+                .build();       
     }
 }
