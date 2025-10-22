@@ -1,7 +1,7 @@
 💎 Jewelry Shop E-Commerce Store
 
 🧭 Overview
-The **Jewelry Shop E-Commerce Store* is a full-stack web application designed to simplify jewelry product management, pricing, and customer order handling.  
+The *Jewelry Shop E-Commerce Store* is a full-stack web application designed to simplify jewelry product management, pricing, and customer order handling.  
 It allows admins to manage products, add updated price, update real-time gold rates, and view sales details efficiently.
 
 ---
@@ -10,8 +10,11 @@ It allows admins to manage products, add updated price, update real-time gold ra
 | Name | Role | Responsibilities |
 
 | **Hiruna Weerakoon** | UI/Frontend | Interface design and user interaction, review|
+
 | **Hiruni Pramodini** | Product Module | Add and manage jewelry items and add updated price, handle gold rate updates |
+
 | **Anuththara Rupasinghe** |Order| Payment status,orders , order items, slips|
+
 | **Sajeevsaran** |Cart| Cart header,cart items,order status|
 
 ---
@@ -31,9 +34,4 @@ It allows admins to manage products, add updated price, update real-time gold ra
 **Database:** MySQL
 
 ---
-
-## ⚙️ Setup Instructions
-
-### 1️⃣ Clone the repository
-```bash
-git clone https://github.com/<your-team-name>/<project-name>.git
+git clone https://github.com/<HASH>/<JewelleryEcommerceStore>.git
