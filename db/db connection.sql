@@ -260,7 +260,6 @@ CREATE TABLE reviews (
 -- ========================================
 
 
-
 -- ====== PRODUCT / CATEGORY / IMAGE / ATTRIBUTE INDEXES ======
 
 -- allow fast lookup by SKU (unique already, but re-declare as explicit index if needed)
@@ -329,13 +328,9 @@ CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email(120));
 -- gold rate history: queries by date range
 CREATE INDEX IF NOT EXISTS idx_gold_rate_effective_date ON gold_rate_history(effective_date);
 
-
-
 -- ========================================
 -- QUERIES FOR PERFORMANCE
 -- ========================================
-
-
 
 -- 1a: get product ids for a category (including child categories)
 SELECT pc.product_id
@@ -363,6 +358,7 @@ LIMIT :pageSize OFFSET :offset;
 
 -- 3a: products that have ALL selected attribute values (value_ids passed)
 -- :valueIds is a comma-separated list or provided as a derived table/temporary table
+
 SELECT p.product_id, p.product_name, p.base_price
 FROM products p
 JOIN product_attribute_values pav ON pav.product_id = p.product_id
@@ -490,8 +486,6 @@ BEGIN
     RETURN ROUND(v_final_price, 2);
 END //
 DELIMITER ;
-
-
 
 -- ========================================
 -- SAMPLE DATA (categories + example products)
