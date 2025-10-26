@@ -1,0 +1,14 @@
+### view empty cart
+GET http://localhost:8080/api/cart?userId=1
+
+### add 2 ruby
+POST http://localhost:8080/api/cart/items?userId=1&gemstoneId=1&qty=2
+
+### add 1 emerald
+POST http://localhost:8080/api/cart/items?userId=1&gemstoneId=2&qty=1
+
+### view cart
+GET http://localhost:8080/api/cart?userId=1
+
+### checkout
+POST http://localhost:8080/api/cart/checkout?userId=1
