@@ -3,7 +3,9 @@ package com.example.jewellery_backend.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
 
 /**
@@ -89,8 +91,4 @@ public class Product {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductAttributeValue> attributeValues;
-
-    public BigDecimal getPrice() {
-        return null;
-    }
 }

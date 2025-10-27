@@ -5,6 +5,7 @@ import com.example.jewellery_backend.dto.UpdateStatusDto;
 import com.example.jewellery_backend.entity.Order;
 import com.example.jewellery_backend.entity.OrderStatusType;
 import com.example.jewellery_backend.service.OrderService;
+import com.example.jewellery_backend.util.Mapper;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,18 +29,22 @@ public class AdminOrderController {
     public ResponseEntity<List<OrderResponseDto>> listOrders(
             @RequestParam(value = "status", required = false) String statusStr) {
 
-        List<OrderResponseDto> dtos;
+        List<Order> orders;
 
         if (statusStr != null && !statusStr.isBlank()) {
             // Filter by order status
             OrderStatusType.OrderStatus statusEnum = OrderStatusType.OrderStatus.valueOf(statusStr);
-            dtos = orderService.listAllOrders().stream() // Get DTO list from service
-                    .filter(o -> o.getOrderStatusType() != null &&
-                            o.getOrderStatusType().getOrderStatusName() == statusEnum)
+            orders = orderService.listAllOrders().stream()
+                    .filter(o -> o.getOrderStatus() != null &&
+                            o.getOrderStatus().getOrderStatusName() == statusEnum)
                     .collect(Collectors.toList());
         } else {
-            dtos = orderService.listAllOrders(); // Get DTO list directly
+            orders = orderService.listAllOrders();
         }
+
+        List<OrderResponseDto> dtos = orders.stream()
+                .map(Mapper::toOrderResponseDto)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
     }

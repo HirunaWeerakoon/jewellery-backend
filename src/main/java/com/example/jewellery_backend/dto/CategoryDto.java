@@ -17,9 +17,9 @@ public class CategoryDto {
     private Boolean isActive;
 
     // For hierarchical structure (optional)
-    private CategoryDto parentId;
-    private List<CategoryDto> children;
-    private String imageUrl;
+    private CategoryDto parentId;                   // To reference parent category
+    private List<CategoryDto> children;      // For nested subcategories
+
     public CategoryDto(Long categoryId, String categoryName, String slug) {
     }
 }
