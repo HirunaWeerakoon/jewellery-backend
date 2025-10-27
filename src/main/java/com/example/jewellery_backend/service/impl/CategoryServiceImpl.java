@@ -22,21 +22,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private CategoryDto toDto(Category c) {
-        if (c == null) return null;
-        return CategoryDto.builder()
-                .categoryId(c.getCategoryId())
-                .categoryName(c.getCategoryName())
-                .slug(c.getSlug())
-                .isActive(c.getIsActive())
-                .imageUrl(c.getImageUrl())
-                .build();
+        return new CategoryDto(c.getCategoryId(), c.getCategoryName(), c.getSlug());
     }
 
     private Category fromDto(CategoryDto dto) {
         Category c = new Category();
         c.setCategoryName(dto.getCategoryName());
         c.setSlug(dto.getSlug());
-        c.setImageUrl(dto.getImageUrl());
         return c;
     }
 

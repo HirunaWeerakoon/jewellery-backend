@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/products/{productId}/reviews")
+@RequestMapping("/products/{productId}/reviews")
 public class ReviewController {
 
 
