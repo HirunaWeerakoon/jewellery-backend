@@ -18,8 +18,11 @@ Content-Type: application/json
 
 { "quantity": 3 }
 
-### 4) Remove item
-DELETE http://localhost:8080/api/cart/items/101
+### 4) Remove item by itemKey (e.g., product 1, no attribute)
+DELETE http://localhost:8080/api/cart/item/1:0
+
+### OR Remove item by itemKey (e.g., product 2, attribute 5)
+DELETE http://localhost:8080/api/cart/item/2:5
 
 ### 5) Checkout
 POST http://localhost:8080/api/cart/checkout

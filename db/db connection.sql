@@ -179,7 +179,6 @@ CREATE TABLE payment_status_types (
 -- 15. Orders Table
 CREATE TABLE orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
-    cart_header_id INT NOT NULL,
     user_name VARCHAR(100) NOT NULL,
     user_address VARCHAR(255) NOT NULL,
     telephone_number VARCHAR(20) NOT NULL,

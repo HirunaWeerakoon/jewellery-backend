@@ -2,7 +2,6 @@ package com.example.jewellery_backend.service;
 
 import com.example.jewellery_backend.config.FileStorageProperties;
 import com.example.jewellery_backend.exception.FileStorageException;
-import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;

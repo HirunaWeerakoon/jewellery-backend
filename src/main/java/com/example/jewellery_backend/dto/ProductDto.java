@@ -1,5 +1,6 @@
 package com.example.jewellery_backend.dto;
 
+import com.example.jewellery_backend.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,4 +43,8 @@ public class ProductDto {
     private List<ProductImageDto> images;
     private List<ProductCategoryDto> productCategories;
     private List<ProductAttributeValueDto> attributeValues;
+
+    public Product orElseThrow(Object o) {
+        return null;
+    }
 }

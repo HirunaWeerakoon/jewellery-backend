@@ -6,7 +6,6 @@ import com.example.jewellery_backend.repository.FilterRepository;
 import com.example.jewellery_backend.repository.ProductRepository;
 import com.example.jewellery_backend.service.FilterService;
 import jakarta.persistence.criteria.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ public class FilterServiceImpl implements FilterService {
 
     private final FilterRepository filterRepository;
 
-    @Autowired
     public FilterServiceImpl(ProductRepository productRepository, FilterRepository filterRepository) {
         this.filterRepository = filterRepository;
     }
