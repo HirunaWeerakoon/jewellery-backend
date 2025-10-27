@@ -1,9 +1,13 @@
 package com.example.jewellery_backend.entity;
 
 import jakarta.persistence.*;
-
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -43,7 +47,4 @@ public class Category {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
-
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
 }

@@ -5,10 +5,11 @@ import com.example.jewellery_backend.CartItem;
 import com.example.jewellery_backend.dto.*;
 import com.example.jewellery_backend.exception.ProductNotFoundException;
 import com.example.jewellery_backend.util.CartMapper;
+import com.example.jewellery_backend.entity.*;
 import com.example.jewellery_backend.repository.*;
+import com.example.jewellery_backend.service.CartService;
 import com.example.jewellery_backend.entity.Product;
 import com.example.jewellery_backend.entity.ProductImage;
-import com.example.jewellery_backend.service.ProductService;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,6 @@ public class CartServiceImpl implements CartService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
-    private final ProductService productService;
 
     private Cart getOrCreateCart(HttpSession session) {
         Cart cart = (Cart) session.getAttribute(Cart.SESSION_ATTRIBUTE);
@@ -48,7 +48,7 @@ public class CartServiceImpl implements CartService {
         Product product = productRepository.findById(req.getProductId())
                 .orElseThrow(() -> new ProductNotFoundException(req.getProductId()));
 
-        BigDecimal price = productService.getUpdatedPrice(product.getProductId());
+        BigDecimal price = determinePrice(product, req.getAttributeValueId());
 
         String itemKey = CartMapper.makeItemKey(product.getProductId(), req.getAttributeValueId());
         CartItem item = CartItem.builder()
@@ -71,20 +71,10 @@ public class CartServiceImpl implements CartService {
         return toDto(cart);
     }
 
-
     @Override
     public CartResponseDto updateCartItem(HttpSession session, UpdateCartItemRequest req) {
         Cart cart = getOrCreateCart(session);
-        CartItem item = cart.getItems().get(req.getItemKey());
-        if (item != null) {
-            BigDecimal updatedPrice = productService.getUpdatedPrice(item.getProductId());
-            item.setUnitPrice(updatedPrice); // Update unit price before quantity
-            cart.updateQuantity(req.getItemKey(), req.getQuantity()); // Recalcs total
-        } else {
-
-            System.err.println("Warning: Cart item not found for key: " + req.getItemKey());
-        }
-
+        cart.updateQuantity(req.getItemKey(), req.getQuantity());
         session.setAttribute(Cart.SESSION_ATTRIBUTE, cart);
         return toDto(cart);
     }

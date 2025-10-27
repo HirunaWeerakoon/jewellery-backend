@@ -44,21 +44,23 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
-    public AdminUserResponse login(AdminUserLoginRequest request) { // <<< Return AdminUserResponse
+    public AdminUserLoginResponse login(AdminUserLoginRequest request) {
         AdminUser user = repository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", request.getUsername())); // Use better exception
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            // Consider throwing a more specific AuthenticationException if integrating deeper later
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        // Update last login time
         user.setLastLogin(LocalDateTime.now());
         repository.save(user);
 
-        // Return user details without a token
-        return mapToResponse(user); // <<< Use existing mapper
+        return AdminUserLoginResponse.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .token("dummy-token") // replace with JWT if required
+                .build();
     }
 
     @Override
