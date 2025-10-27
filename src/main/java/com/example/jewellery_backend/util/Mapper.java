@@ -5,8 +5,6 @@ import com.example.jewellery_backend.dto.OrderResponseDto;
 import com.example.jewellery_backend.entity.Order;
 import com.example.jewellery_backend.entity.OrderItem;
 import com.example.jewellery_backend.entity.Slip;
-
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 

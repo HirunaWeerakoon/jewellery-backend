@@ -1,7 +1,6 @@
 package com.example.jewellery_backend.controller;
 
 import com.example.jewellery_backend.dto.CategoryDto;
-import com.example.jewellery_backend.entity.Category;
 import com.example.jewellery_backend.service.CategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

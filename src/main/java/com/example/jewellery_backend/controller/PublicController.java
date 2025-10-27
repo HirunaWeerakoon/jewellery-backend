@@ -36,6 +36,10 @@ public class PublicController {
     public ResponseEntity<List<ProductDto>> allProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ProductDto> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getProductById(id));
+    }
 
     @GetMapping("/categories/{id}/products")
     public ResponseEntity<List<ProductDto>> getProductsByCategory(@PathVariable Long id) {

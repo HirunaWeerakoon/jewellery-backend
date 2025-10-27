@@ -2,7 +2,6 @@ package com.example.jewellery_backend.controller.admin;
 
 import com.example.jewellery_backend.dto.CreateUpdateProductRequest;
 import com.example.jewellery_backend.dto.ProductDto;
-import com.example.jewellery_backend.entity.Product;
 import com.example.jewellery_backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

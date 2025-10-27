@@ -6,7 +6,7 @@ public interface AdminUserService {
 
     AdminUserResponse register(AdminUserRegisterRequest request);
 
-    AdminUserLoginResponse login(AdminUserLoginRequest request);
+    AdminUserResponse login(AdminUserLoginRequest request);
 
     AdminUserResponse getById(Long id);
 }

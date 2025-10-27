@@ -17,9 +17,8 @@ public class AdminUserController {
     public ResponseEntity<AdminUserResponse> register(@RequestBody AdminUserRegisterRequest request) {
         return ResponseEntity.ok(service.register(request));
     }
-
     @PostMapping("/login")
-    public ResponseEntity<AdminUserLoginResponse> login(@RequestBody AdminUserLoginRequest request) {
+    public ResponseEntity<AdminUserResponse> login(@RequestBody AdminUserLoginRequest request) {
         return ResponseEntity.ok(service.login(request));
     }
 
